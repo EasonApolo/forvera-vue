@@ -1,5 +1,17 @@
 <template>
   <div class="about">
-    <h1>This is an about page</h1>
+    Hey, there!
   </div>
 </template>
+
+<style scoped lang="scss">
+.about {
+  margin-left: 15rem;
+  padding: 2rem;
+}
+@media (max-width: 750px) {
+  .about {
+    margin-left: 0;
+  }
+}
+</style>
