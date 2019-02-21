@@ -23,6 +23,11 @@ export default new Router({
       path: '/art',
       name: 'art',
       component: () => import(/* webpackChunkName: "art" */ './views/Art.vue')
+    },
+    {
+      path: '/twit',
+      name: 'twit',
+      component: () => import(/* webpackChunkName: "twit" */ './views/Twit.vue')
     }
   ]
 })

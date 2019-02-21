@@ -6,7 +6,9 @@
         {{c.name}}({{c.count}})
       </li>
     </ul>
-    <List :cat="cat" :page="page" :per_page="per_page"/>
+    <div class="list-wrapper">
+      <List :cat="cat" :page="page" :per_page="per_page"/>
+    </div>
     <div class="nav">
       <span @click="setPage(page-1)" class="pre" :class="{disable:isPage(page-1)}">上一页</span>
       <span v-for="n in page_count" :key="n" :class="{active:n==page}" @click="setPage(n)" class="nav-digit">{{ n }}</span>
@@ -26,7 +28,7 @@ export default {
       cat: 0,
       page: 1,
       page_count: 1,
-      per_page: 10
+      per_page: 5
     }
   },
   components: {
@@ -79,14 +81,15 @@ export default {
 <style scoped lang="scss">
 .home {
   position: relative;
-  margin-left: 15rem;
-  padding-right: 15rem;
+  margin-left: 30%;
+  width: 40%;
+  padding-right: 30%;
   padding-bottom: 3rem;
 }
 .category {
   position: absolute;
   top: 0;
-  right: 0;
+  right: calc(42.85% - 15rem);
   width: 15rem;
   padding-top: 2rem;
   font-size: .875rem;
@@ -96,8 +99,9 @@ export default {
     transition: .2s;
     user-select: none;
     cursor: pointer;
+    border-radius: .75rem;
     &:hover {
-      background-color: #ddd;
+      background-color: #eeeeff;
     }
   }
   div {
@@ -106,17 +110,19 @@ export default {
     border-bottom: 1px solid #ccc;
   }
   .active {
-    background-color: #ccc;
+    background-color: #f5f5ff
   }
 }
 @media (max-width: 750px) {
   .home {
     margin: 0 0 3rem 0;
     padding-right: 0;
+    width: 100%;
   }
   .category {
-    position: relative;
     display: flex;
+    position: relative;
+    right: 0;
     padding: 0;
     width: 100%;
     div, li {
@@ -135,23 +141,11 @@ export default {
     div {
       position: relative;
       padding: .5rem .75rem;
-      background: linear-gradient(to right, white, #ddd);
-      &:after {
-        content: '';
-        position: absolute;
-        width: 0;
-        height: 0;
-        top: 0;
-        right: -1rem;
-        border-left: 1rem solid #ddd;
-        border-top: 1rem solid transparent;
-        border-bottom: 1rem solid transparent;
-      }
     }
   }
 }
 .nav {
-  margin: 0 auto;
+  margin: 2rem auto;
   width: 45%;
   height: 2rem;
   font-size: .875rem;

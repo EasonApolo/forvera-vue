@@ -1,5 +1,6 @@
 <template>
   <div class="list">
+    <Loading :intSwitch=intSwitch></Loading>
     <div v-for="item in items" :key="item.id" class="item">
       <div class="title">
         <a @click="toArt(item.id)">{{item.title.rendered}}</a>
@@ -9,23 +10,23 @@
         {{slicedContent(item.content.rendered)}}
       </div>
     </div>
-    <div class="nav">
-      <!-- <span @click="toPrePage" class="pre" :class="{disable:getPre}">上一页</span>
-      <span @click="toPostPage" class="post" :class="{disable:getPost}">下一页</span> -->
-    </div>
   </div>
 </template>
 
 <script>
 import bus from '@/bus.js'
+import Loading from '@/components/Loading.vue'
 export default {
   name: 'List',
   props: ['cat', 'per_page', 'page'],
   data () {
     return {
       items: [],
-      nav: []
+      intSwitch: 0
     }
+  },
+  components: {
+    Loading
   },
   created () {
     this.fetchData()
@@ -37,39 +38,22 @@ export default {
         return plain.length > 147 ? plain.substring(0, 147) + '...' : plain
       }
     }
-    // getPre: function () {
-    //   return !this.nav['pre']
-    // },
-    // getPost: function () {
-    //   return !this.nav['post']
-    // }
   },
   methods: {
     toArt: function (id) {
       this.$router.push({path: 'art', query: {id: id}})
     },
     fetchData: function () {
+      this.intSwitch = 1
+      this.items = []
       fetch(window.ip + 'posts' + '?categories=' + this.cat + '&page=' + this.page + '&per_page=' + this.per_page)
       .then(res => {
         return res.json()
       }).then(json => {
         this.items = json
+        this.intSwitch = 0
       })
-    },
-    toPostPage: function () {
-      if (this.nav['post']) {
-        this.page++
-      } else {
-        bus.$emit('pop', '已经是最后一页>_<')
-      }
-    },
-    // toPrePage: function () {
-    //   if (this.nav['pre']) {
-    //     this.page--
-    //   } else {
-    //     bus.$emit('pop', '已经是第一页>_<')
-    //   }
-    // }
+    }
   },
   watch: {
     'cat': {
@@ -90,6 +74,22 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped lang="scss">
+.list {
+  padding-top: 1rem;
+  position: relative;
+}
+.loading-wrapper {
+  position: absolute;
+  width: 100%;
+  .loading {
+    width: 1.25rem;
+    height: 1.25rem;
+    margin: 0 auto;
+    background-image: url(../../public/load.png);
+    background-size: contain;
+    background-repeat: no-repeat;
+  }
+}
 .item {
   padding: 2rem 2rem;
   text-align: left;
@@ -109,64 +109,6 @@ export default {
   .content {
     margin-top: 0.25rem;
     font-size: 0.875rem;
-  }
-}
-.nav {
-  margin: 0 auto;
-  width: 38.2%;
-  height: 2rem;
-  font-size: .875rem;
-  span {
-    position: relative;
-    height: 100%;
-    line-height: 2rem;
-    transition: .3s ease;
-    cursor: pointer;
-    user-select: none;
-  }
-  .disable {
-    opacity: .4;
-  }
-  .pre {
-    float: left;
-    &::before {
-      content: '';
-      position: absolute;
-      left: -1rem;
-      top: .5rem;
-      height: 1rem;
-      width: 1rem;
-      background-image: url(../../public/left.png);
-      background-size: contain;
-    }
-    &:hover {
-      transform: translateX(-.5rem);
-    }
-  }
-  .post {
-    float: right;
-    &::before {
-      content: '';
-      position: absolute;
-      right: -1rem;
-      top: .5rem;
-      height: 1rem;
-      width: 1rem;
-      background-image: url(../../public/right.png);
-      background-size: contain;
-    }
-    &:hover {
-      transform: translateX(.5rem);
-    }
-  }
-}
-@media (max-width: 750px) {
-  .nav {
-    .pre, .post {
-      &:hover {
-        transform: translateX(0);
-      }
-    }
   }
 }
 </style>

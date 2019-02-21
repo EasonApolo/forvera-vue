@@ -5,13 +5,7 @@
       <div class="time">{{artData.date}}</div>
       <div class="content" v-html="artData.content.rendered"></div>
     </div>
-    <div class="mask" v-if="!artData.title">
-      <img src="@/../public/load.png" class="load-img" :style="{transform:rotate}">
-    </div>
-    <div id="navigation" v-if="navData.length > 0">
-      <span id="nav-pre" @click="reload(0)" :class="{disable:navData[0].id===-1}">{{navData[0].title}}</span>
-      <span id="nav-post" @click="reload(1)" :class="{disable:navData[1].id===-1}">{{navData[1].title}}</span>
-    </div>
+    <Loading :intSwitch=switch1></Loading>
     <div id="comment-header">> 评论 { {{commentsData.length}} }</div>
     <div class="comment-wrapper" v-if="commentsLoadOK">
       <div v-for="(comment, index) in commentsData" :key="comment.id" class="comment">
@@ -22,9 +16,7 @@
         <span class="time">{{comment.date}}</span>
       </div>
     </div>
-    <div class="mask" v-show="!commentsLoadOK">
-      <img src="@/../public/load.png" class="load-img" :style="{transform:rotate}">
-    </div>
+    <Loading :intSwitch=switch2></Loading>
     <ul class="add">
       <li>> 添加评论<span v-show="commentToIndex !== -1" class="addTo">
           对  <i> {{commentToName}} </i> 
@@ -32,11 +24,7 @@
       </li>
       <li><textarea name="content" rows="2" placeholder="评论" v-model="addContent"/></li>
       <li><input name="name" placeholder="名字" v-model="addName"></li>
-      <li><input type="submit" value="提交" @click="addComment" :class="{disabled:addSending}">
-        <span v-show="addSending">
-          <img src="@/../public/load.png" class="load-img" :style="{transform:rotate}">
-        </span>
-      </li>
+      <li><input type="submit" value="提交" @click="addComment" :class="{disabled:addSending}"></li>
     </ul>
     <div id="toTop" v-show="scrollY > 800" @click="scrollToTop"></div>
   </div>
@@ -44,6 +32,7 @@
 
 <script>
 import bus from '@/bus.js'
+import Loading from '@/components/Loading.vue'
 export default {
   name: 'art',
   data () {
@@ -56,20 +45,20 @@ export default {
       commentsLoadOK: false,
       navData: [],
       //other setting
-      rotateDeg: 0,
-      rotateSpeed: 3,
+      switch1: 0,
+      switch2: 0,
       scrollY: 0,
       //addComment
       commentToIndex: -1,
       addName: '',
       addContent: '',
-      addSending: false
+      addSending: false,
     }
   },
+  components: {
+    Loading
+  },
   computed: {
-    rotate: function () {
-      return 'rotate(' + this.rotateDeg + 'deg)'
-    },
     replyToName: function () {
       return id => this.commentsData[id].author_name
     },
@@ -82,7 +71,6 @@ export default {
     this.postId = this.$route.query.id
     this.fetchArticle()
     this.fetchComment()
-    this.fetchNavigation()
     window.addEventListener('scroll', this.scroll)
   },
   methods: {
@@ -109,7 +97,6 @@ export default {
         return
       }
       this.addSending = true
-      const intid = setInterval(this.rotating, 10)
       let form = new FormData()
       let parent = this.commentToIndex == -1 ? 0 : this.commentsData[this.commentToIndex].id
       form.append('author_name', this.addName)
@@ -125,29 +112,27 @@ export default {
         this.addName = this.addContent = ''
         this.commentToIndex = -1
         this.fetchComment()
-        clearInterval(intid)
       })
       return 0
     },
     fetchArticle () {
-      const intid = setInterval(this.rotating, 10)
+      this.switch1 = 1
       fetch(window.ip + 'posts/' + this.postId)
       .then(res => {
         return res.json()
       }).then(json => {
         this.artData = json
-        clearInterval(intid)
+        this.switch1 = 0
       })
     },
     fetchComment () {
-      const intid = setInterval(this.rotating, 10)
+      this.switch2 = 1
       fetch(window.ip + 'comments?post=' + this.postId)
       .then(res => {
         return res.json()
       }).then(json => {
         this.commentsData = json
         let l = this.commentsData.length
-        console.log(l)
         for (let i = 0; i < l; i++) {
           let to = this.commentsData[i].parent
           if (to !== 0) {
@@ -159,20 +144,9 @@ export default {
             }
           }
         }
-        clearInterval(intid)
+        this.switch2 = 0
         this.commentsLoadOK = true
       })
-    },
-    fetchNavigation () {
-      fetch(window.ip + '/article/nav/' + this.postId)
-      .then(res => {
-        return res.json()
-      }).then(json => {
-        this.navData = json
-      })
-    },
-    rotating () {
-      this.rotateDeg += this.rotateSpeed
     },
     reload (index) {
       let id = this.navData[index].id
@@ -187,7 +161,6 @@ export default {
       this.commentsLoadOK = false
       this.navData = []
       //other setting
-      this.rotateDeg = 0
       this.scrollY = 0
       //addComment
       this.commentToIndex = -1
@@ -195,7 +168,6 @@ export default {
       this.addContent = ''
       this.fetchArticle()
       this.fetchComment()
-      this.fetchNavigation()
     }
   }
 }
@@ -203,7 +175,9 @@ export default {
 
 <style lang="scss">
 .art {
-  margin-left: 15rem;
+  position: relative;
+  margin-left: 30%;
+  margin-right: 30%;
 }
 .article {
   padding: 2rem;
@@ -216,55 +190,6 @@ export default {
     font-size: 0.875rem;
     text-align: left;
     line-height: 1rem;
-  }
-}
-#navigation {
-  margin: 0 auto 2rem auto;
-  width: 38.2%;
-  height: 2rem;
-  font-size: .875rem;
-  span {
-    position: relative;
-    height: 100%;
-    line-height: 2rem;
-    transition: .3s ease;
-    cursor: pointer;
-    user-select: none;
-  }
-  #nav-pre {
-    float: left;
-    &::before {
-      content: '';
-      position: absolute;
-      left: -1rem;
-      top: .5rem;
-      height: 1rem;
-      width: 1rem;
-      background-image: url(../../public/left.png);
-      background-size: contain;
-    }
-    &:hover {
-      transform: translateX(-.5rem);
-    }
-  }
-  #nav-post {
-    float: right;
-    &::before {
-      content: '';
-      position: absolute;
-      right: -1rem;
-      top: .5rem;
-      height: 1rem;
-      width: 1rem;
-      background-image: url(../../public/right.png);
-      background-size: contain;
-    }
-    &:hover {
-      transform: translateX(.5rem);
-    }
-  }
-  .disable {
-    opacity: .4;
   }
 }
 #comment-header {
@@ -348,18 +273,6 @@ export default {
   textarea:focus {
     border: 1px #4FB9F1 solid;
   }
-  .load-img {
-    margin-left: 1rem;
-    width: 1.25rem;
-    vertical-align: middle;
-  }
-}
-.mask {
-  padding: 2rem;
-  height: 100%;
-  .load-img {
-    width: 1.25rem;
-  }
 }
 #toTop {
   position: fixed;
@@ -367,18 +280,18 @@ export default {
   height: 2rem;
   right: 2rem;
   bottom: 8rem;
-  background-color: #DDD;
+  background-color: #eeeeff;
   background-image: url(../../public/top.png);
-  background-size: contain;
+  background-size: 40% 40%;
+  background-position: 50% 50%;
+  background-repeat: no-repeat;
   border-radius: 50%;
   cursor: pointer;
 }
 @media (max-width: 750px) {
   .art {
     margin: 0 0 4rem 0;
-  }
-  #navigation {
-    width: 61.8%;
+    padding: 0;
   }
   .comment .time {
     display: none;
