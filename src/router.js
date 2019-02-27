@@ -28,6 +28,11 @@ export default new Router({
       path: '/twit',
       name: 'twit',
       component: () => import(/* webpackChunkName: "twit" */ './views/Twit.vue')
+    },
+    {
+      path: '/tool',
+      name: 'tool',
+      component: () => import(/* webpackChunkName: "tool" */ './views/Tool.vue')
     }
   ]
 })

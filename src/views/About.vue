@@ -1,6 +1,6 @@
 <template>
   <div class="about">
-    Hey, there!
+    Welcome to the Grand Tournament, Champion.
   </div>
 </template>
 

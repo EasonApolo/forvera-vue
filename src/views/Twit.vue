@@ -7,7 +7,7 @@
           <div class="item-name">{{item.author_name}}</div>
           <div class="item-date">{{slicedDate(item.date_gmt)}}</div>
         </div>
-        <div class="bub" v-html="slicedContent(item.content.rendered)">
+        <div class="bub" v-html="item.content.rendered">
         </div>
       </div>
     </div>
@@ -15,7 +15,7 @@
       <div id="add-open" v-show="!addOpen" @click="addOpen=true"></div>
     </transition>
     <transition name="slide-large" mode="out-in">
-      <div class="add" v-show="addOpen">
+      <div class="add" v-show="addOpen||large_device">
         <div class="close" @click="addOpen=false"></div>
         <div class="input-name"><input type='text' v-model='name' placeholder="精灵咏唱者">
         </div>
@@ -38,7 +38,8 @@ export default {
       data: [],
       name: '',
       content: '',
-      addOpen: false
+      addOpen: false,
+      large_device: true
     }
   },
   components: {
@@ -46,12 +47,16 @@ export default {
   },
   created () {
     this.fetchComment()
+    this.setDevice()
+    window.addEventListener('resize', () => {
+      this.setDevice()
+    })
   },
   computed: {
     slicedContent: function () {
       return function (content) {
         let plain = content.replace(/<[^>]*>/g, '')
-        return plain.length > 147 ? plain.substring(0, 147) + '...' : plain
+        return plain
       }
     },
     slicedDate: function () {
@@ -65,6 +70,9 @@ export default {
     }
   },
   methods: {
+    setDevice () {
+      this.large_device = document.documentElement.clientWidth > 750 
+    },
     fetchComment () {
       this.data = []
       this.intSwitch = 1
@@ -127,6 +135,14 @@ export default {
         border-radius: 1.25rem;
         font-size: 0.875rem;
         line-height: 1.75rem;
+        word-break: break-all;
+        /deep/ p {
+          margin: 0;
+        }
+        /deep/ a {
+          text-decoration: underline;
+          color: #88f;
+        }
         &:after {
           content: '';
           position: absolute;
@@ -248,6 +264,9 @@ export default {
         cursor: pointer;
       }
     }
+  }
+  .hide {
+    display: none;
   }
 }
 .slide-large-enter, .slide-large-leave-to {

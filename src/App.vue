@@ -4,6 +4,7 @@
       <ul id="nav-content">
         <router-link class="a-index" to="/">首页</router-link>
         <router-link class="a-board" to="/twit">留言</router-link>
+        <router-link class="a-board" to="/tool">工具</router-link>
         <router-link class="a-about" to="/about">关于</router-link>
       </ul>
     </div>
@@ -63,6 +64,7 @@ input, textarea {
   outline: none;
   border-radius: 0;
   -webkit-appearance: none;
+  font-family: 'Avenir', Helvetica, Arial, sans-serif;
 }
 a {
   color: #2c3e50;

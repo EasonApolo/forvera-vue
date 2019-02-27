@@ -173,7 +173,7 @@ export default {
 }
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .art {
   position: relative;
   margin-left: 30%;
