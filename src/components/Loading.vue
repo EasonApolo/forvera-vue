@@ -35,7 +35,7 @@ export default {
 .loading-wrapper {
   position: relative;
   width: 100%;
-  height: 2.5rem;
+  height: 2rem;
   padding-top: 0.625rem;
   .loading {
     top: 25%;

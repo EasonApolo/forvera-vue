@@ -1,12 +1,19 @@
 <template>
   <div class="tool">
-    <textarea id="input" placeholder="input" rows="10" v-model="input"></textarea>
-    <textarea id="reg" placeholder="regular expression" rows="2" v-model="reg"></textarea>
-    <button id="parse" @click="parse">parse</button>
-      <button id="save" @click="save">save this regexp</button>
-    <textarea id="output" placeholder="output" rows="10" v-text="output"></textarea>
-    <span id="count" v-text="count"></span>
-    <div class="right">
+    <div class="content" v-show="active=='choose'">
+      <div class="choice" v-for="(tool, index) in tools" :key="index" @click="active=tool">
+        {{tool}}
+      </div>
+    </div>
+    <div class="content" v-show="active=='regexp'">
+      <textarea id="input" placeholder="input" rows="10" v-model="input"></textarea>
+      <textarea id="reg" placeholder="regular expression" rows="2" v-model="reg"></textarea>
+      <button id="parse" @click="parse">parse</button>
+        <button id="save" @click="save">save this regexp</button>
+      <textarea id="output" placeholder="output" rows="10" v-text="output"></textarea>
+      <span id="count" v-text="count"></span>
+    </div>
+    <div class="right" v-show="active=='regexp'">
       <div class="title">saved regexp</div>
       <div v-for="(reg, index) in regs" :key="index" class="regl">
         <span @click="replace(index)">{{reg}}</span>
@@ -22,6 +29,8 @@ export default {
   name: 'tool',
   data () {
     return {
+      active: 'choose',
+      tools: ['regexp'],
       input: '',
       reg: '',
       output: '',
@@ -91,13 +100,26 @@ export default {
 <style scoped lang="scss">
 .tool {
   position: relative;
-  margin-left: 30%;
-  padding-top: 2rem;
-  padding-right: 30%;
+  margin: 0 30% 5rem 30%;
+  padding-top: 3rem;
   width: 40%;
+  .choice {
+    margin: 0 3rem;
+    height: 3rem;
+    border: 3px solid #aaf;
+    border-radius: 2rem;
+    line-height: 3rem;
+    cursor: pointer;
+    transition: .3s ease-in-out;
+    &:hover {
+      color: white;
+      background-color: #aaf;
+    }
+  }
   textarea, button {
     display: block;
     margin: 0 auto 1rem auto;
+    transition: all .2s ease;
   }
   textarea {
     width: 90%;
@@ -116,9 +138,9 @@ export default {
   }
   .right {
     position: absolute;
-    width: 40%;
-    top: 2rem;
-    right: 0;
+    width: 15rem;
+    top: 3rem;
+    right: -15rem;
     .regl {
       margin: .5rem 0;
       cursor: pointer;
@@ -146,6 +168,7 @@ export default {
       position: relative;
       display: block;
       width: 100%;
+      left: 0;
       top: 0;
       margin: 2rem 0 5rem 0;
     }

@@ -4,7 +4,7 @@
       <ul id="nav-content">
         <router-link class="a-index" to="/">首页</router-link>
         <router-link class="a-board" to="/twit">留言</router-link>
-        <router-link class="a-board" to="/tool">工具</router-link>
+        <router-link class="a-tool" to="/tool">工具</router-link>
         <router-link class="a-about" to="/about">关于</router-link>
       </ul>
     </div>
@@ -146,7 +146,7 @@ ul {
         border-radius: 1rem;
         color: transparent;
       }
-      .a-index, .a-board, .a-about {
+      .a-index, .a-board, .a-tool, .a-about {
         background-size: 1.4325rem;
         background-position: 50%;
         background-repeat: no-repeat;
@@ -163,6 +163,13 @@ ul {
       }
       .a-board.router-link-exact-active {
         background-image: url(../public/board_active.png);
+      }
+      .a-tool {
+        background-size: 1.0625rem;
+        background-image: url(../public/tool.png);
+      }
+      .a-tool.router-link-exact-active {
+        background-image: url(../public/tool_active.png);
       }
       .a-about {
         background-size: 1.125rem;

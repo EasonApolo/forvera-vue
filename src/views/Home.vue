@@ -107,7 +107,6 @@ export default {
   div {
     padding: .5rem 0;
     font-size: 1rem;
-    border-bottom: 1px solid #ccc;
   }
   .active {
     background-color: #f5f5ff
@@ -135,8 +134,8 @@ export default {
       text-align: center;
       font-size: .875rem;
     }
-    li:hover {
-      background: #ccc;
+    li {
+      border-radius: 2rem;
     }
     div {
       position: relative;
