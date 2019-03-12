@@ -7,7 +7,7 @@
           <div class="item-name">{{item.author_name}}</div>
           <div class="item-date">{{slicedDate(item.date_gmt)}}</div>
         </div>
-        <div class="bub" v-html="item.content.rendered">
+        <div class="bub" v-html="item.content.rendered" @click="clickbub($event)">
         </div>
       </div>
     </div>
@@ -70,6 +70,17 @@ export default {
     }
   },
   methods: {
+    clickbub (e) {
+      console.log(e)
+      if (e.target.nodeName === 'IMG') {
+        if (e.target.style.maxWidth === '100%') {
+          e.target.style.maxWidth = '30%'
+        } else {
+          e.target.style.maxWidth = '100%'
+        }
+        console.log(e.target.style.maxWidth)
+      }
+    },
     setDevice () {
       this.large_device = document.documentElement.clientWidth > 750 
     },
@@ -142,6 +153,13 @@ export default {
         /deep/ a {
           text-decoration: underline;
           color: #88f;
+        }
+        /deep/ img {
+          display: block;
+          margin: .5rem 0;
+          max-width: 30%;
+          border-radius: 1.25rem;
+          transition: .2s ease-in-out;
         }
         &:after {
           content: '';
