@@ -117,7 +117,7 @@ export default {
 .item {
   width: calc(100% - 4rem);
   left: 0;
-  padding: 2rem;
+  padding: 2rem 2rem 1rem 2rem;
   text-align: left;
   transition: all .3s;
   .title {

@@ -188,8 +188,36 @@ export default {
   }
   .content {
     font-size: 0.875rem;
-    text-align: left;
     line-height: 1rem;
+    /deep/ p {
+      margin: 0.75rem 0;
+      line-height: 1.375rem;
+      text-align: left;
+      word-wrap: break-word;
+    }
+    /deep/ a {
+      text-decoration: underline;
+    }
+    /deep/ img {
+      max-width: 100%;
+      height: auto;
+    }
+    /deep/ figcaption {
+      text-align: center;
+    }
+    /deep/ code {
+      display: block;
+      margin: .5rem 0;
+      padding: .75rem;
+      line-height: 1.5rem;
+      text-align: left;
+      background-color: #F4F4FF;
+      font-family: "monospace";
+      border-radius: 1rem;
+    }
+    /deep/ pre {
+      white-space: pre-wrap;
+    }
   }
 }
 #comment-header {
@@ -302,38 +330,6 @@ export default {
   .art .add li textarea {
     width: calc(100% - 22px);
   }
-}
-</style>
-<style>
-.art .article .content p{
-  line-height: 1.375rem;
-  margin: 0.75rem 0;
-  word-wrap: break-word;
-}
-.art .article .content .code {
-  padding: .75rem;
-  background-color: #DDD;
-  font-family: "monospace";
-  border-radius: .5rem;
-}
-.art .article .content .mark {
-  background-color: #DDD;
-}
-.art .article .content a {
-  text-decoration: underline;
-}
-.art .article .content img {
-  display: block;
-  margin: 2rem auto;
-  max-width: 70%;
-  height: auto;
-}
-.art .article .content .img-note {
-  margin-top: -1rem;
-  text-align: center;
-  font-size: 13px;
-}
-@media (max-width: 750px) {
   .art .article .content img {
     max-width: 100%;
     height: auto;

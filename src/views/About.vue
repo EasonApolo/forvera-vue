@@ -1,11 +1,80 @@
 <template>
   <div class="about">
-    Welcome to the Grand Tournament, Champion. 
+    Welcome to the Grand Tournament, Champion.
+    <div id="chart">
+      <svg width="90%" height="100%" version="1.1"
+        xmlns="http://www.w3.org/2000/svg">  
+        <defs>
+          <linearGradient id="orange_red" x1="0%" y1="100%" x2="0%" y2="0%">
+            <stop offset="0%" style="stop-color:rgb(225, 225, 255);
+            stop-opacity:1"/>
+            <stop offset="100%" style="stop-color:rgb(100,100,255);
+            stop-opacity:1"/>
+          </linearGradient>
+        </defs>
+        <polyline :points=points
+        style="fill:transparent;stroke:url(#orange_red);stroke-width:2"/>
+      </svg>
+    </div>
     <div class="right">
-      <a href="https://github.com/EasonApolo"><div class="icon"></div><div>EasonApolo</div></a>
+      <a href="https://github.com/EasonApolo" class="github"><span></span><div>GitHub</div></a>
+      <a href="mailto:waterlilyapolo@gmail.com" class="gmail"><span></span><div>Gmail</div></a>
     </div>
   </div>
 </template>
+
+<script>
+import bus from '@/bus.js'
+export default {
+  name: 'about',
+  data () {
+    return {
+      points: '',
+      posts: []
+    }
+  },
+  components: {
+  },
+  created () {
+  },
+  mounted () {
+    this.fetchData()
+  },
+  computed: {},
+  methods: {
+    fetchData () {
+      fetch(window.ip + 'posts?per_page=' + 100)
+      .then(res => {
+        return res.json()
+      }).then(json => {
+        this.posts = json
+        this.process()
+      })
+    },
+    process () {
+      let svgWidth = document.getElementById('chart').offsetWidth * 0.9
+      let startYear = 2016
+      let endYear = 2019
+      let month = []
+      for(let i = this.posts.length - 1; i >= 0; i--) {
+        let date = this.posts[i].date.slice(0, 7).split('-')
+        if (i === this.posts.length - 1) startYear = parseInt(date[0])
+        if (i === 0) endYear = parseInt(date[0])
+        month.push((parseInt(date[0])-startYear)*12+parseInt(date[1]))
+      }
+      let y = Array((endYear-startYear+1)*12).fill(0)
+      for(let i in month) {
+        y[month[i] - 1] += 1
+      }
+      y = y.map(v => 100 - v * 10)
+      let x = Array(y.length).fill(0).map((v, ind) => ind * svgWidth / (y.length-1))
+      for (let i in y) {
+        this.points += x[i] + ',' + y[i] + ' '
+      }
+    }
+  }
+}
+</script>
 
 <style scoped lang="scss">
 .about {
@@ -22,26 +91,38 @@
       margin-bottom: 1rem;
       height: 3rem;
       line-height: 3rem;
-      background-color: #eef;
       border-radius: 1rem;
       font-size: .875rem;
-      div {
+      span, div {
         display: inline-block;
         margin-right: .5rem;
         vertical-align: middle;
       }
     }
-    .icon {
-      width: 1.25rem;
-      height: 1.25rem;
-      background-image: url('../../public/github.png');
-      background-size: contain;
+    .github {
+      span {
+        width: 1.25rem;
+        height: 1.25rem;
+        background-image: url('../../public/github.png');
+        background-size: contain;
+      }
+      background-color: #eef;
+
+    }
+    .gmail{
+      span {
+        width: 1.25rem;
+        height: 1.25rem;
+        background-image: url('../../public/gmail.png');
+        background-size: contain;
+      }
+      background-color: #f5f5f5;
     }
   }
 }
 @media (max-width: 750px) {
   .about {
-    margin-left: 0;
+    margin: 0 3rem;
     width: 100%;
     padding: 5rem 0;
     margin: 0;

@@ -9,7 +9,7 @@
       </ul>
     </div>
     <transition :name="transitionName" mode="out-in">
-      <keep-alive include="home">
+      <keep-alive include="home,twit,tool,about">
         <router-view/>
       </keep-alive>
     </transition>
