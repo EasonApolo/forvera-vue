@@ -5,7 +5,7 @@
       <div class="item" v-for="(item, index) in data" :key="index">
         <div>
           <div class="item-name">{{item.author_name}}</div>
-          <div class="item-date">{{slicedDate(item.date_gmt)}}</div>
+          <div class="item-date">{{slicedDate(item.date)}}</div>
         </div>
         <div class="bub" v-html="item.content.rendered" @click="clickbub($event)">
         </div>
