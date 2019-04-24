@@ -1,9 +1,9 @@
 <template>
   <div class="about">
     Welcome to the Grand Tournament, Champion.
-    <div id="chart">
-      <svg width="90%" height="100%" version="1.1"
-        xmlns="http://www.w3.org/2000/svg">  
+    <div id="chart" class="block">
+      <div class="block-header">> 统计</div>
+      <svg version="1.1" xmlns="http://www.w3.org/2000/svg">  
         <defs>
           <linearGradient id="orange_red" x1="0%" y1="100%" x2="0%" y2="0%">
             <stop offset="0%" style="stop-color:rgb(225, 225, 255);
@@ -15,6 +15,7 @@
         <polyline :points=points
         style="fill:transparent;stroke:url(#orange_red);stroke-width:2"/>
       </svg>
+      <div class="years"><span v-for="year in years" :key="year" class="year">{{year}}</span></div>
     </div>
     <div class="right">
       <a href="https://github.com/EasonApolo" class="github"><span></span><div>GitHub</div></a>
@@ -30,7 +31,8 @@ export default {
   data () {
     return {
       points: '',
-      posts: []
+      posts: [],
+      years: []
     }
   },
   components: {
@@ -52,7 +54,7 @@ export default {
       })
     },
     process () {
-      let svgWidth = document.getElementById('chart').offsetWidth * 0.9
+      let svgWidth = document.getElementById('chart').offsetWidth - 3 * 2 * 16
       let startYear = 2016
       let endYear = 2019
       let month = []
@@ -61,6 +63,9 @@ export default {
         if (i === this.posts.length - 1) startYear = parseInt(date[0])
         if (i === 0) endYear = parseInt(date[0])
         month.push((parseInt(date[0])-startYear)*12+parseInt(date[1]))
+      }
+      for (let i = startYear; i <= endYear; i++) {
+        this.years.push(i)
       }
       let y = Array((endYear-startYear+1)*12).fill(0)
       for(let i in month) {
@@ -117,6 +122,27 @@ export default {
         background-size: contain;
       }
       background-color: #f5f5f5;
+    }
+  }
+  .block {
+    margin-top: 3rem;
+  }
+  .block-header {
+    text-align: left;
+  }
+  #chart {
+    padding: 0 3rem;
+    svg {
+      width: 100%;
+      height: 108px;
+    }
+    .years {
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      color: #888;
+      font-style: italic;
+      font-size: 13px;
     }
   }
 }

@@ -117,11 +117,12 @@ export default {
 .item {
   width: calc(100% - 4rem);
   left: 0;
-  padding: 2rem 2rem 1rem 2rem;
+  padding: 2rem 2rem .5rem 2rem;
   text-align: left;
   transition: all .3s;
   .title {
     font-size: 1rem;
+    line-height: 1.5rem;
     transition: color .2s;
     .time {
       margin-left: 1rem;
@@ -136,6 +137,8 @@ export default {
   .content {
     margin-top: 0.25rem;
     font-size: 0.875rem;
+    line-height: 1.375rem;
+    color: #555;
   }
 }
 </style>

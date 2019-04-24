@@ -30,7 +30,7 @@ export default {
   },
   watch: {
     '$route' (to, from) {
-      const routelist = ['home', 'about']
+      const routelist = ['home', 'twit', 'tool', 'about']
       if (to.name === 'art') {
         this.transitionName = 'slide-left'
       } else if (from.name === 'art') {

@@ -2,7 +2,7 @@
   <div class="art">
     <div class="article" v-if="artData.title">
       <div class="title">{{artData.title.rendered}}</div>
-      <div class="time">{{artData.date}}</div>
+      <div class="time">{{slicedDate(artData.date)}}</div>
       <div class="content" v-html="artData.content.rendered"></div>
     </div>
     <Loading :intSwitch=switch1></Loading>
@@ -10,10 +10,10 @@
     <div class="comment-wrapper" v-if="commentsLoadOK">
       <div v-for="(comment, index) in commentsData" :key="comment.id" class="comment">
         <span class="name">{{comment.author_name}}</span>
-        <span v-if="comment.parent !== 0" class="replyto"> > {{replyToName(comment.toIndex)}}</span>
+        <span v-if="comment.parent !== 0" class="replyto">&nbsp;&nbsp;-->&nbsp;&nbsp;{{replyToName(comment.toIndex)}}</span>
         <span class="content">: {{comment.content.rendered.replace(/<[^>]*>/g, '')}}</span>
-        <span class="add" @click="commentToIndex = index">评论</span>
-        <span class="time">{{comment.date}}</span>
+        <span class="reply" @click="commentToIndex = index">回复</span>
+        <span class="time">{{slicedDate(comment.date)}}</span>
       </div>
     </div>
     <Loading :intSwitch=switch2></Loading>
@@ -65,6 +65,15 @@ export default {
     commentToName: function () {
       let i = this.commentsData[this.commentToIndex]
       return i ? i.author_name : ''
+    },
+    slicedDate: function () {
+      return function (d) {
+        let ds = d.split(/[-T:]/)
+        ds[0] = ds[0].slice(2, 4)
+        ds = ds.slice(0, -1)
+        ds = ds.slice(0,3).join('-') + ' ' + ds.slice(3,5).join(':')
+        return ds
+      }
     }
   },
   created () {
@@ -127,7 +136,7 @@ export default {
     },
     fetchComment () {
       this.switch2 = 1
-      fetch(window.ip + 'comments?post=' + this.postId)
+      fetch(window.ip + 'comments?order=asc&post=' + this.postId)
       .then(res => {
         return res.json()
       }).then(json => {
@@ -136,7 +145,7 @@ export default {
         for (let i = 0; i < l; i++) {
           let to = this.commentsData[i].parent
           if (to !== 0) {
-            for (let j = i; j < l; j++) {
+            for (let j = 0; j < i; j++) {
               if (this.commentsData[j].id === to) {
                 this.commentsData[i].toIndex = j
                 break
@@ -187,11 +196,11 @@ export default {
     font-size: 0.875rem;
   }
   .content {
-    font-size: 0.875rem;
+    font-size: .9375rem;
     line-height: 1rem;
     /deep/ p {
-      margin: 0.75rem 0;
-      line-height: 1.375rem;
+      margin: 1.25rem 0;
+      line-height: 1.625rem;
       text-align: left;
       word-wrap: break-word;
     }
@@ -201,9 +210,13 @@ export default {
     /deep/ img {
       max-width: 100%;
       height: auto;
+      margin-bottom: .75rem;
     }
     /deep/ figcaption {
       text-align: center;
+      color: #888;
+      font-size: 14px;
+      font-style: italic;
     }
     /deep/ code {
       display: block;
@@ -222,7 +235,7 @@ export default {
 }
 #comment-header {
   padding: 0 2rem;
-  font-size: 0.875rem;
+  font-size: .9375rem;
   line-height: 1.5rem;
   text-align: left;
 }
@@ -230,25 +243,25 @@ export default {
   padding: 0 2rem 2rem 2rem;
   text-align: left;
   .comment {
-    margin: 0.25rem 0;
+    margin: 0.5rem 0;
     font-size: 0.875rem;
     .name {
       font-size: 0.875rem;
     }
-    .time, .add{
+    .time, .reply{
       opacity: 0;
       color: #AAA;
       transition: .3s ease;
       margin-left: .5rem;
     }
-    .add {
+    .reply {
       margin-left: 1rem;
       cursor: pointer;
     }
     &:hover .time {
       opacity: 1;
     }
-    &:hover .add {
+    &:hover .reply {
       opacity: 1;
       margin-left: .5rem;
     }
@@ -257,7 +270,7 @@ export default {
 .add {
   margin: 0 2rem;
   text-align: left;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   li {
     margin-bottom: 1rem;
     span {
