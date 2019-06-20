@@ -56,18 +56,18 @@ export default {
     process () {
       let svgWidth = document.getElementById('chart').offsetWidth - 3 * 2 * 16
       let startYear = 2016
-      let endYear = 2019
+      let endYear = 2020
       let month = []
       for(let i = this.posts.length - 1; i >= 0; i--) {
         let date = this.posts[i].date.slice(0, 7).split('-')
         if (i === this.posts.length - 1) startYear = parseInt(date[0])
-        if (i === 0) endYear = parseInt(date[0])
+        if (i === 0) endYear = parseInt(date[0]) + 1
         month.push((parseInt(date[0])-startYear)*12+parseInt(date[1]))
       }
       for (let i = startYear; i <= endYear; i++) {
         this.years.push(i)
       }
-      let y = Array((endYear-startYear+1)*12).fill(0)
+      let y = Array((endYear-startYear)*12).fill(0)
       for(let i in month) {
         y[month[i] - 1] += 1
       }

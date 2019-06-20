@@ -149,7 +149,7 @@ export default {
     }
   },
   watch: {
-    'regs': function () {
+    'reglist': function () {
       localStorage.regex = JSON.stringify(this.reglist)
     }
   }
@@ -256,6 +256,7 @@ export default {
       line-height: 1.25rem;
       span {
         word-wrap: break-word;
+        vertical-align: middle;
       }
       cursor: pointer;
       &:hover {

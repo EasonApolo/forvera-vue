@@ -17,9 +17,9 @@
     <transition name="slide-large" mode="out-in">
       <div class="add" v-show="addOpen||large_device">
         <div class="close" @click="addOpen=false"></div>
-        <div class="input-name"><input type='text' v-model='name' placeholder="精灵咏唱者">
+        <div class="input-name"><input type='text' v-model='name' placeholder="">
         </div>
-        <div class="input-content"><textarea type='text' v-model='content' placeholder="曾经，有一个来自吉尔尼斯的人…" rows="10"></textarea></div>
+        <div class="input-content"><textarea type='text' v-model='content' placeholder="" rows="10"></textarea></div>
         <button @click="send"></button>
       </div>
     </transition>
@@ -36,6 +36,7 @@ export default {
     return {
       intSwitch: 0,
       data: [],
+      max_page: 100,
       name: '',
       content: '',
       addOpen: false,
@@ -46,11 +47,12 @@ export default {
     Loading
   },
   created () {
-    this.fetchComment()
+    this.fetchComment(1)
     this.setDevice()
     window.addEventListener('resize', () => {
       this.setDevice()
     })
+    window.addEventListener('scroll', this.scrollBottom)
   },
   computed: {
     slicedContent: function () {
@@ -70,28 +72,39 @@ export default {
     }
   },
   methods: {
+    scrollBottom () {
+      if (this.intSwitch == 0 && document.documentElement.scrollTop + document.documentElement.clientHeight >= document.body.clientHeight) {
+        let pageToFetch = Math.ceil(this.data.length / 10.0)
+        this.fetchComment(pageToFetch)
+      }
+    },
     clickbub (e) {
-      console.log(e)
       if (e.target.nodeName === 'IMG') {
         if (e.target.style.maxWidth === '100%') {
           e.target.style.maxWidth = '30%'
         } else {
           e.target.style.maxWidth = '100%'
         }
-        console.log(e.target.style.maxWidth)
       }
     },
     setDevice () {
       this.large_device = document.documentElement.clientWidth > 750 
     },
-    fetchComment () {
+    clearComment () {
       this.data = []
+      this.max_page = 1000
+    },
+    fetchComment (page) {
+      if (page > this.max_page) return    // reject request if page beyond max_page
       this.intSwitch = 1
-      fetch(window.ip + 'comments?post=' + 53)
+      fetch(window.ip + 'comments?post=' + 53 + '&page=' + page)
       .then(res => {
         return res.json()
       }).then(json => {
-        this.data = json
+        if (json.length == 0) {
+          this.max_page = page - 1
+        }
+        this.data = this.data.concat(json)
         this.intSwitch = 0
       })
     },
@@ -111,7 +124,8 @@ export default {
         body: form
       }).then(() => {
         this.addOpen = false
-        this.fetchComment()
+        this.clearComment()
+        this.fetchComment(1)
       })
     }
   }
