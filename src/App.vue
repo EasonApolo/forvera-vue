@@ -2,17 +2,17 @@
   <div id="app">
     <div id="nav">
       <ul id="nav-content">
-        <router-link class="a-index" to="/">首页</router-link>
-        <router-link class="a-board" to="/twit">留言</router-link>
-        <router-link class="a-tool" to="/tool">工具</router-link>
+        <router-link class="a-index" to="/"     >首页</router-link>
+        <router-link class="a-board" to="/twit" >留言</router-link>
+        <router-link class="a-tool"  to="/tool" >工具</router-link>
         <router-link class="a-about" to="/about">关于</router-link>
       </ul>
     </div>
-    <transition :name="transitionName" mode="out-in">
       <keep-alive include="home,twit,tool,about">
         <router-view/>
       </keep-alive>
-    </transition>
+    <!-- <transition :name="transitionName" mode="out-in">
+    </transition> -->
     <pop></pop>
   </div>
 </template>
@@ -104,24 +104,28 @@ ul {
 @media (min-width: 750px) {
   #nav {
     position: fixed;
-    left: calc(30% - 15rem);
-    width: 15rem;
+    left: calc(30% - 13rem);
+    padding: 0 0;
+    width: calc(15rem - 2rem);
     height: 100%;
+    border-right: 1px solid #EEE;
     z-index: 1;
   }
   #nav-content {
     margin-top: 3rem;
     a {
+      margin: 0 2rem 1rem 2rem;
       display: block;
-      padding: 0.75rem 0;
-      transition: .3s;
+      padding: 0.5rem 0;
+      border-radius: 3rem;
+      transition: .2s;
+      letter-spacing: 2px;
       user-select: none;
-      border-radius: .75rem;
       &.router-link-exact-active {
-        background-color: #f5f5ff
+        background-color: #f1f1ff;
       }
       &:hover {
-        background-color: #eeeeff
+        background-color: #e5e5ff
       }
     }
   }

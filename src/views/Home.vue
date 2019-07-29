@@ -87,29 +87,32 @@ export default {
   padding-bottom: 3rem;
 }
 .category {
-  position: absolute;
+  position: fixed;
   top: 0;
-  right: calc(42.85% - 15rem);
-  width: 15rem;
-  padding-top: 2rem;
+  right: calc(30% - 13rem);
+  padding: 2rem 0rem 0 0rem;
+  width: calc(13rem);
+  height: 100%;
+  border-left: 1px solid #eee;
   font-size: .875rem;
   text-align: left;
   li {
-    padding: .5rem .75rem;
+    margin: .5rem 2rem;
+    padding: .5rem 1rem;
+    border-radius: 2rem;
     transition: .2s;
     user-select: none;
     cursor: pointer;
-    border-radius: .75rem;
     &:hover {
       background-color: #eeeeff;
     }
   }
   div {
-    padding: .5rem 0;
+    padding: .5rem 2rem;
     font-size: 1rem;
   }
   .active {
-    background-color: #f5f5ff
+    background-color: #f1f1ff
   }
 }
 @media (max-width: 750px) {

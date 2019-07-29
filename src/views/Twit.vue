@@ -72,9 +72,12 @@ export default {
     }
   },
   methods: {
+    reply (id) {
+
+    },
     scrollBottom () {
       if (this.intSwitch == 0 && document.documentElement.scrollTop + document.documentElement.clientHeight >= document.body.clientHeight) {
-        let pageToFetch = Math.ceil(this.data.length / 10.0)
+        let pageToFetch = Math.ceil(this.data.length / 10.0 + 1)
         this.fetchComment(pageToFetch)
       }
     },
@@ -95,6 +98,7 @@ export default {
       this.max_page = 1000
     },
     fetchComment (page) {
+      console.log(page)
       if (page > this.max_page) return    // reject request if page beyond max_page
       this.intSwitch = 1
       fetch(window.ip + 'comments?post=' + 53 + '&page=' + page)
@@ -140,6 +144,7 @@ export default {
   width: 40%;
   .content {
     padding: 2rem 2rem;
+    border-right: 1px solid #eee;
     text-align: left;
     .item {
       margin: 0 0 1rem 0;
@@ -150,6 +155,9 @@ export default {
         font-size: .9375rem;
       }
       .item-date {
+        font-size: .8125rem;
+      }
+      .item-reply {
         font-size: .8125rem;
       }
       .bub {
@@ -192,11 +200,12 @@ export default {
     }
   }
   .add {
-    position: absolute;
+    position: fixed;
     top: 0;
-    left: 57.1%;
-    width: 30%;
-    padding: 2rem 0;
+    left: 70%;
+    padding: 2rem 2rem;
+    max-width: 15rem;
+    width: calc(100% - 1.5rem);
     button {
       width: 3.5rem;
       height: 2rem;
@@ -216,14 +225,14 @@ export default {
     }
     input, textarea {
       margin-bottom: 1rem;
-      width: calc(100% - 1.5rem);
-      max-width: 15rem;
       padding: .5rem .75rem;
+      width: calc(100% - 1.5rem);
       border: 1px solid #ccf;
-      transition: all .2s ease;
+      border-radius: 1rem;
+      letter-spacing: 1px;
       font-size: .8125rem;
       font-family: 'Avenir', Helvetica, Arial, sans-serif;
-      border-radius: 1rem;
+      transition: all .2s ease;
       &:hover, &:focus {
         border-color: #88f;
       }
