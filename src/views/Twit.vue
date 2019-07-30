@@ -1,13 +1,28 @@
 <template>
   <div class="twit">
     <Loading :intSwitch=intSwitch></Loading>
-    <div class="content">
+    <div class="main">
       <div class="item" v-for="(item, index) in data" :key="index">
-        <div>
-          <div class="item-name">{{item.author_name}}</div>
-          <div class="item-date">{{slicedDate(item.date)}}</div>
+        <div class='meta'>
+          <div class="name">{{item.author_name}}</div>
+          <div class="date">{{slicedDate(item.date)}}</div>
         </div>
-        <div class="bub" v-html="item.content.rendered" @click="clickbub($event)">
+        <div class="content" v-html="item.content.rendered" @click="clickbub($event)"></div>
+        <div class="opmenu">
+          <div class='comments'>
+            <div class='icon' style='width:1.25rem'><svg viewBox="0 0 24 24"><path fill='#ccc' d='M14.046 2.242l-4.148-.01h-.002c-4.374 0-7.8 3.427-7.8 7.802 0 4.098 3.186 7.206 7.465 7.37v3.828c0 .108.044.286.12.403.142.225.384.347.632.347.138 0 .277-.038.402-.118.264-.168 6.473-4.14 8.088-5.506 1.902-1.61 3.04-3.97 3.043-6.312v-.017c-.006-4.367-3.43-7.787-7.8-7.788zm3.787 12.972c-1.134.96-4.862 3.405-6.772 4.643V16.67c0-.414-.335-.75-.75-.75h-.396c-3.66 0-6.318-2.476-6.318-5.886 0-3.534 2.768-6.302 6.3-6.302l4.147.01h.002c3.532 0 6.3 2.766 6.302 6.296-.003 1.91-.942 3.844-2.514 5.176z'></path></svg></div>
+            <div class='num'>{{item.child.length === 0 ? '' : item.child.length}}</div>
+            </div>
+          <div class='react'>
+            <div v-for='(val, key) in item.meta[0]' :key='key' class='added'>
+              {{map[key]}}{{val}}
+            </div>
+            <div class='addreact'>+
+              <div class='list'>
+                <div class='addreact-item' v-for="(val, key) in map" :key="val" @click='react(item, key)'>{{val}}</div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -17,8 +32,7 @@
     <transition name="slide-large" mode="out-in">
       <div class="add" v-show="addOpen||large_device">
         <div class="close" @click="addOpen=false"></div>
-        <div class="input-name"><input type='text' v-model='name' placeholder="">
-        </div>
+        <div class="input-name"><input type='text' v-model='name' placeholder=""></div>
         <div class="input-content"><textarea type='text' v-model='content' placeholder="" rows="10"></textarea></div>
         <button @click="send"></button>
       </div>
@@ -40,7 +54,21 @@ export default {
       name: '',
       content: '',
       addOpen: false,
-      large_device: true
+      large_device: true,
+      map: {
+        'gd': '🉑',
+        'zn': '👍',
+        'sh': '💩',
+        'nm': '🍋',
+        'ca': '👎',
+        'wh': '❓',
+        'ha': '🐸',
+        'gt': '❗',
+        'hp': '😨',
+        'dg': '🐶',
+        'tt': '🍭',
+        'qq': '😘'
+      }
     }
   },
   components: {
@@ -72,8 +100,32 @@ export default {
     }
   },
   methods: {
-    reply (id) {
-
+    react (item, key) {
+      let react
+      if (item.meta.length === 0) {
+        react = {}
+      } else {
+        react = item.meta.pop()
+      }
+      if (key in react) {
+        react[key] = react[key] + 1
+      } else {
+        react[key] = 1
+      }
+      item.meta.push(react)
+      let form = new FormData()
+      let meta = JSON.stringify([react])
+      form.append('id', item.id)
+      form.append('meta', meta)
+      console.log(meta)
+      fetch(window.ip + 'comments/' + item.id, {
+        method: 'POST',
+        body: form
+      })
+      .then(res => {return res.json()})
+      .then(json => {
+        console.log(json)
+      })
     },
     scrollBottom () {
       if (this.intSwitch == 0 && document.documentElement.scrollTop + document.documentElement.clientHeight >= document.body.clientHeight) {
@@ -101,15 +153,37 @@ export default {
       console.log(page)
       if (page > this.max_page) return    // reject request if page beyond max_page
       this.intSwitch = 1
-      fetch(window.ip + 'comments?post=' + 53 + '&page=' + page)
+      fetch(window.ip + 'comments?post=' + 53 + '&page=' + page + '&parent=0')
       .then(res => {
         return res.json()
       }).then(json => {
         if (json.length == 0) {
           this.max_page = page - 1
         }
+        json.map(v => {v.child = []})
         this.data = this.data.concat(json)
         this.intSwitch = 0
+        let allparent = json.map(v => v.id)
+        this.fetchChildComments(allparent)
+      })
+    },
+    fetchChildComments (allparent) {
+      console.log(allparent)
+      fetch(window.ip + 'comments?post=' + 53 + '&parent=' + allparent.join(','))
+      .then(res => {return res.json()})
+      .then(json => {
+        console.log(json)
+        json.map(v => {
+          for (let i in this.data) {
+            if (this.data[i].id === v.parent) {
+              if (this.data[i].child === undefined) {
+                this.data[i].child = [v]
+              } else {
+                this.data[i].child.push(v)
+              }
+            }
+          }
+        })
       })
     },
     send () {
@@ -142,30 +216,35 @@ export default {
   margin-left: 30%;
   padding-right: 30%;
   width: 40%;
-  .content {
-    padding: 2rem 2rem;
+  .main {
+    padding: 2rem 0rem;
     border-right: 1px solid #eee;
     text-align: left;
     .item {
-      margin: 0 0 1rem 0;
-      .item-name, .item-date {
-        display: inline-block;
-        margin: 0 1rem .75rem 0;
-        color: #999;
-        font-size: .9375rem;
+      padding: 1rem 2rem;
+      border-top: 1px solid #eee;
+      &:hover {
+        background-color: #fafafa;
       }
-      .item-date {
-        font-size: .8125rem;
+      .meta {
+        .name, .date {
+          display: inline-block;
+          margin: 0 1rem .5rem 0;
+          font-size: .9375rem;
+        }
+        .name {
+          font-weight: bold;
+        }
+        .date {
+          color: #999;
+          font-size: .8125rem;
+        }
+        .reply {
+          font-size: .8125rem;
+        }
       }
-      .item-reply {
-        font-size: .8125rem;
-      }
-      .bub {
-        display: inline-block;
+      .content {
         position: relative;
-        padding: .5rem 1.25rem;
-        background-color: #f2f2ff;
-        border-radius: 1.25rem;
         font-size: 0.875rem;
         line-height: 1.75rem;
         word-break: break-all;
@@ -183,18 +262,59 @@ export default {
           border-radius: 1.25rem;
           transition: .2s ease-in-out;
         }
-        &:after {
-          content: '';
-          position: absolute;
-          width: 8px;
-          height: 8px;
-          left: 1rem;
-          top: -8px;
-          border-width: 0 12px 8px 0;
-          border-style: solid;
-          border-color: #f2f2ff;
-          border-bottom-color: transparent;
-          border-top-right-radius: 16px;
+      }
+      .opmenu {
+        margin-top: .5rem;
+        color: #888;
+        font-size: 15px;
+        .comments {
+          display: inline-block;
+          .icon {
+            display: inline-block;
+            height: 20px;
+            vertical-align: middle;
+          }
+          .num {
+            display: inline-block;
+            margin-left: .25rem;
+            height: 20px;
+            vertical-align: middle;
+          }
+        }
+        .react {
+          position: relative;
+          display: inline-block;
+          vertical-align: top;
+          margin-left: 2rem;
+          .added {
+            display: inline-block;
+            margin-right: 1rem;
+          }
+          .addreact {
+            position: absolute;
+            display: inline-block;
+            z-index: 1;
+            &:hover .list {
+              display: flex;
+            }
+            .list {
+              display: none;
+              flex-wrap: wrap;
+              padding: .5rem;
+              width: 8rem;
+              background-color: white;
+              border: 1px solid #ddd;
+              border-radius: .5rem;
+              cursor: pointer;
+              .addreact-item {
+                flex: 0 0 auto;
+                width: 2rem;
+                height: 2rem;
+                line-height: 2rem;
+                text-align: center;
+              }
+            }
+          }
         }
       }
     }
