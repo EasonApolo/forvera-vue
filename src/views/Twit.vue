@@ -9,7 +9,7 @@
         </div>
         <div class="content" v-html="item.content.rendered" @click="clickbub($event)"></div>
         <div class="opmenu">
-          <div class='comments'>
+          <div class='comments' @click='toParent=item.id'>
             <div class='icon' style='width:1.25rem'><svg viewBox="0 0 24 24"><path fill='#ccc' d='M14.046 2.242l-4.148-.01h-.002c-4.374 0-7.8 3.427-7.8 7.802 0 4.098 3.186 7.206 7.465 7.37v3.828c0 .108.044.286.12.403.142.225.384.347.632.347.138 0 .277-.038.402-.118.264-.168 6.473-4.14 8.088-5.506 1.902-1.61 3.04-3.97 3.043-6.312v-.017c-.006-4.367-3.43-7.787-7.8-7.788zm3.787 12.972c-1.134.96-4.862 3.405-6.772 4.643V16.67c0-.414-.335-.75-.75-.75h-.396c-3.66 0-6.318-2.476-6.318-5.886 0-3.534 2.768-6.302 6.3-6.302l4.147.01h.002c3.532 0 6.3 2.766 6.302 6.296-.003 1.91-.942 3.844-2.514 5.176z'></path></svg></div>
             <div class='num'>{{item.child.length === 0 ? '' : item.child.length}}</div>
             </div>
@@ -24,6 +24,13 @@
             </div>
           </div>
         </div>
+        <div v-for="child in item.child" :key='child.author' class="item item-child">
+          <div class='meta'>
+            <div class="name">{{child.author_name}}</div>
+            <div class="date">{{slicedDate(child.date)}}</div>
+          </div>
+          <div class="content" v-html="child.content.rendered" @click="clickbub($event)"></div>
+        </div>
       </div>
     </div>
     <transition name="slide-small" mode="out-in">
@@ -34,6 +41,7 @@
         <div class="close" @click="addOpen=false"></div>
         <div class="input-name"><input type='text' v-model='name' placeholder=""></div>
         <div class="input-content"><textarea type='text' v-model='content' placeholder="" rows="10"></textarea></div>
+        <div class='replyto' v-show="toParent != 0">回复给<i>{{toParentName}}</i></div>
         <button @click="send"></button>
       </div>
     </transition>
@@ -56,6 +64,7 @@ export default {
       addOpen: false,
       large_device: true,
       reactdata: [],
+      toParent: 0,
       map: {
         'gd': '🉑',
         'zn': '👍',
@@ -84,6 +93,10 @@ export default {
     window.addEventListener('scroll', this.scrollBottom)
   },
   computed: {
+    toParentName: function () {
+      let item = this.data.find(v => v.id === this.toParent)
+      return item === undefined ? '' : item.author_name
+    },
     itemReact: function () {
       return (item) => {
         let pair = this.reactdata.find(v => v.id == item.id)  // v.id is str, use ==
@@ -141,6 +154,7 @@ export default {
       })
     },
     scrollBottom () {
+      if (this.$route.path != '/twit') return
       if (this.intSwitch == 0 && document.documentElement.scrollTop + document.documentElement.clientHeight >= document.body.clientHeight) {
         let pageToFetch = Math.ceil(this.data.length / 10.0 + 1)
         this.fetchComment(pageToFetch)
@@ -208,7 +222,7 @@ export default {
       let form = new FormData()
       form.append('author_name', this.name)
       form.append('content', this.content)
-      form.append('parent', 0)
+      form.append('parent', this.toParent)
       form.append('post', 53)
       form.append('author_email', '787817128@qq.com')
       fetch(window.ip + 'comments', {
@@ -338,6 +352,10 @@ export default {
         }
       }
     }
+    .item-child {
+      margin-top: 1rem;
+      padding-bottom: 0;
+    }
   }
   .add {
     position: fixed;
@@ -377,6 +395,10 @@ export default {
         border-color: #88f;
       }
     }
+    .replyto {
+      margin-bottom: 1rem;
+      font-size: 15px;
+    }
   }
 }
 @media (max-width: 750px) {
@@ -400,10 +422,11 @@ export default {
       cursor: pointer;
     }
     .add{
-      padding: 0;
       position: fixed;
       top: 0;
       left: 0;
+      padding: 0;
+      max-width: 100%;
       width: 100%;
       height: 100%;
       background-color: #fff;
@@ -444,6 +467,10 @@ export default {
         background-position: 50% 50%;
         background-repeat: no-repeat;
         cursor: pointer;
+      }
+      .replyto {
+        margin-bottom: 1rem;
+        font-size: 14px;
       }
     }
   }

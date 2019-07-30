@@ -1,17 +1,15 @@
 <template>
   <div class="list">
     <Loading :intSwitch=intSwitch></Loading>
-    <transition-group name="list-complete" tag="div">
-      <div class="item" v-for="(item, index) in items" :key="item.id" :data-index="index">
-        <div class="title">
-          <a @click="toArt(item.id)">{{item.title.rendered}}</a>
-          <span class="time">{{slicedDate(item.date)}}</span>
-        </div>
-        <div class="content">
-          {{slicedContent(item.content.rendered)}}
-        </div>
+    <div class="item" v-for="(item, index) in items" :key="item.id" :data-index="index" @click="toArt(item.id)">
+      <div class="title">
+        <span>{{item.title.rendered}}</span>
+        <span class="time">{{slicedDate(item.date)}}</span>
       </div>
-    </transition-group>
+      <div class="content">
+        {{slicedContent(item.content.rendered)}}
+      </div>
+    </div>
   </div>
 </template>
 
@@ -63,18 +61,7 @@ export default {
         return res.json()
       }).then(json => {
         this.intSwitch = 0
-        let id = setInterval(() => {
-          this.items.pop()
-          if (this.items.length <= 0) {
-            clearInterval(id)
-            let id2 = setInterval(() => {
-              this.items.push(json.shift())
-              if (json.length <= 0) {
-                clearInterval(id2)
-              }
-            }, 100)
-          }
-        }, 100)
+        this.items = json
       })
     }
   },
@@ -92,7 +79,7 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped lang="scss">
 .list {
-  padding-top: 1rem;
+  padding-top: 2rem;
   position: relative;
 }
 .list-complete-move {
@@ -103,7 +90,6 @@ export default {
   transform: translateY(-.5rem);
 }
 .loading-wrapper {
-  position: absolute;
   width: 100%;
   .loading {
     width: 1.25rem;
@@ -117,21 +103,25 @@ export default {
 .item {
   width: calc(100% - 4rem);
   left: 0;
-  padding: 2rem 2rem .5rem 2rem;
+  padding: 1rem 2rem;
+  border-top: 1px solid #eee;
   text-align: left;
   transition: all .3s;
+  cursor: pointer;
+  &:hover {
+    background-color: #f6f6f6;
+  }
   .title {
-    font-size: 1rem;
     line-height: 1.5rem;
+    font-size: 1rem;
+    font-weight: bold;
     transition: color .2s;
     .time {
       margin-left: 1rem;
       line-height: 1rem;
       font-size: 0.875rem;
+      font-weight: normal;
       color: #888;
-    }
-    a:hover{
-      cursor: pointer;
     }
   }
   .content {
