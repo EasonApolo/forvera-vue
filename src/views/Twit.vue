@@ -14,7 +14,7 @@
             <div class='num'>{{item.child.length === 0 ? '' : item.child.length}}</div>
             </div>
           <div class='react'>
-            <div v-for='(val, key) in item.meta[0]' :key='key' class='added'>
+            <div v-for='(val, key) in itemReact(item)' :key='key' class='added'>
               {{map[key]}}{{val}}
             </div>
             <div class='addreact'>+
@@ -50,11 +50,12 @@ export default {
     return {
       intSwitch: 0,
       data: [],
-      max_page: 100,
+      max_page: 101,
       name: '',
       content: '',
       addOpen: false,
       large_device: true,
+      reactdata: [],
       map: {
         'gd': '🉑',
         'zn': '👍',
@@ -83,6 +84,12 @@ export default {
     window.addEventListener('scroll', this.scrollBottom)
   },
   computed: {
+    itemReact: function () {
+      return (item) => {
+        let pair = this.reactdata.find(v => v.id == item.id)  // v.id is str, use ==
+        return pair === undefined ? [] : pair.react
+      }
+    },
     slicedContent: function () {
       return function (content) {
         let plain = content.replace(/<[^>]*>/g, '')
@@ -100,31 +107,37 @@ export default {
     }
   },
   methods: {
+    fetchReact () {
+      fetch(window.domain + '/react.php')
+      .then(res => {return res.json()})
+      .then(json => {
+        this.reactdata = json
+      })
+    },
     react (item, key) {
       let react
-      if (item.meta.length === 0) {
+      if (item.meta.react === '') {
         react = {}
       } else {
-        react = item.meta.pop()
+        react = item.meta.react
       }
       if (key in react) {
         react[key] = react[key] + 1
       } else {
         react[key] = 1
       }
-      item.meta.push(react)
+      item.meta.react = react
+      let react_str = JSON.stringify(react)
       let form = new FormData()
-      let meta = JSON.stringify([react])
       form.append('id', item.id)
-      form.append('meta', meta)
-      console.log(meta)
-      fetch(window.ip + 'comments/' + item.id, {
+      form.append('rid', key)
+      fetch(window.domain + '/react.php', {
         method: 'POST',
         body: form
       })
       .then(res => {return res.json()})
       .then(json => {
-        console.log(json)
+        this.reactdata = json
       })
     },
     scrollBottom () {
@@ -165,6 +178,7 @@ export default {
         this.intSwitch = 0
         let allparent = json.map(v => v.id)
         this.fetchChildComments(allparent)
+        this.fetchReact()
       })
     },
     fetchChildComments (allparent) {
@@ -265,10 +279,14 @@ export default {
       }
       .opmenu {
         margin-top: .5rem;
+        height: 1.25rem;
+        line-height: 1.25rem;
         color: #888;
         font-size: 15px;
+        user-select: none;
         .comments {
           display: inline-block;
+          cursor: pointer;
           .icon {
             display: inline-block;
             height: 20px;
@@ -293,6 +311,8 @@ export default {
           .addreact {
             position: absolute;
             display: inline-block;
+            font-size: 16px;
+            cursor: pointer;
             z-index: 1;
             &:hover .list {
               display: flex;
