@@ -1,23 +1,27 @@
 <template>
   <div class="about">
-    Welcome to the Grand Tournament, Champion.
-    <div id="chart" class="block">
-      <div class="block-header">> 统计</div>
-      <svg version="1.1" xmlns="http://www.w3.org/2000/svg">  
-        <defs>
-          <linearGradient id="orange_red" x1="0%" y1="100%" x2="0%" y2="0%">
-            <stop offset="0%" style="stop-color:rgb(225, 225, 255);
-            stop-opacity:1"/>
-            <stop offset="100%" style="stop-color:rgb(100,100,255);
-            stop-opacity:1"/>
-          </linearGradient>
-        </defs>
-        <polyline :points=points
-        style="fill:transparent;stroke:url(#orange_red);stroke-width:2"/>
-      </svg>
-      <div class="years"><span v-for="year in years" :key="year" class="year">{{year}}</span></div>
+    <div class='item'>Welcome to the Grand Tournament, Champion.</div>
+    <div class='item'>
+      <div id="chart" class="block">
+        <div class="block-header">统计</div>
+        <Loading :intSwitch=intSwitch></Loading>
+        <svg version="1.1" xmlns="http://www.w3.org/2000/svg">  
+          <defs>
+            <linearGradient id="orange_red" x1="0%" y1="100%" x2="0%" y2="0%">
+              <stop offset="0%" style="stop-color:rgb(225, 225, 255);
+              stop-opacity:1"/>
+              <stop offset="100%" style="stop-color:rgb(100,100,255);
+              stop-opacity:1"/>
+            </linearGradient>
+          </defs>
+          <polyline :points=points
+          style="fill:transparent;stroke:url(#orange_red);stroke-width:2"/>
+        </svg>
+        <div class="years"><span v-for="year in years" :key="year" class="year">{{year}}</span></div>
+      </div>
     </div>
     <div class="right">
+      <div class='title'>Contacts</div>
       <a href="https://github.com/EasonApolo" class="github"><span></span><div>GitHub</div></a>
       <a href="mailto:waterlilyapolo@gmail.com" class="gmail"><span></span><div>Gmail</div></a>
     </div>
@@ -26,16 +30,19 @@
 
 <script>
 import bus from '@/bus.js'
+import Loading from '@/components/Loading.vue'
 export default {
   name: 'about',
   data () {
     return {
+      intSwitch: 0,
       points: '',
       posts: [],
       years: []
     }
   },
   components: {
+    Loading
   },
   created () {
   },
@@ -45,11 +52,13 @@ export default {
   computed: {},
   methods: {
     fetchData () {
+      this.intSwitch = 1
       fetch(window.ip + 'posts?per_page=' + 100)
       .then(res => {
         return res.json()
       }).then(json => {
         this.posts = json
+        this.intSwitch = 0
         this.process()
       })
     },
@@ -85,19 +94,51 @@ export default {
 .about {
   position: relative;
   margin: 0 30%;
-  padding: 3rem;
+  padding: 3rem 0;
+  .item {
+    padding: 1.5rem 0;
+    border-top: 1px solid #eee;
+    transition: .2s ease-in-out;
+    &:hover {
+      background-color: #eee;
+    }
+    #chart {
+      padding: 0 3rem;
+      svg {
+        width: 100%;
+        height: 108px;
+      }
+      .years {
+        margin: 0 auto;
+        display: flex;
+        justify-content: space-between;
+        color: #888;
+        font-style: italic;
+        font-size: 13px;
+      }
+    }
+  }
   .right {
     position: absolute;
-    width: 15rem;
-    right: -15rem;
     top: 3rem;
+    right: -17rem;
+    padding: .5rem 0 0 0;
+    width: 15rem;
+    border-radius: 1.5rem;
+    background-color: #f6f6ff;
+    text-align: left;
+    overflow: hidden;
+    .title {
+      padding: .5rem 0 1rem 1rem;
+      font-weight: bold;
+    }
     a {
       display: block;
-      margin-bottom: 1rem;
-      height: 3rem;
-      line-height: 3rem;
-      border-radius: 1rem;
+      padding: .75rem 1rem;
+      border-top: 1px solid #eee;
+      transition: .2s ease-in-out;
       font-size: .875rem;
+      line-height: 1.25rem;
       span, div {
         display: inline-block;
         margin-right: .5rem;
@@ -105,44 +146,22 @@ export default {
       }
     }
     .github {
+      background-color: #eef;
       span {
         width: 1.25rem;
         height: 1.25rem;
         background-image: url('../../public/github.png');
         background-size: contain;
       }
-      background-color: #eef;
-
     }
     .gmail{
+      background-color: #f5f5f5;
       span {
         width: 1.25rem;
         height: 1.25rem;
         background-image: url('../../public/gmail.png');
         background-size: contain;
       }
-      background-color: #f5f5f5;
-    }
-  }
-  .block {
-    margin-top: 3rem;
-  }
-  .block-header {
-    text-align: left;
-  }
-  #chart {
-    padding: 0 3rem;
-    svg {
-      width: 100%;
-      height: 108px;
-    }
-    .years {
-      margin: 0 auto;
-      display: flex;
-      justify-content: space-between;
-      color: #888;
-      font-style: italic;
-      font-size: 13px;
     }
   }
 }

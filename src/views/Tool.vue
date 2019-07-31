@@ -11,14 +11,14 @@
       <textarea id="input" placeholder="input" rows="10" v-model="reg.input"></textarea>
       <div style="position:relative">
         <textarea id="reg" placeholder="regular expression" rows="2" v-model="reg.reg"></textarea>
-        <button id="save" @click="save">save</button>
+        <button id="save" @click="save">保存</button>
       </div>
-      <button id="parse" @click="parse">parse</button>
+      <button id="parse" @click="parse">提取</button>
       <textarea id="output" placeholder="output" rows="10" v-text="reg.output"></textarea>
       <span id="count" v-text="count"></span>
     </div>
     <div class="right" v-if="active=='regexp'">
-      <div class="title">saved regexp</div>
+      <div class="title">已保存的正则表达式</div>
       <div v-for="(reg, index) in reglist" :key="index" :class="{activeindex:listindex===index}" class="regl" @click="replace(index)">
         <span>{{reg}}</span>
         <span class="remove" @click.stop="remove(index)"></span>
@@ -48,7 +48,7 @@ export default {
       active: 'choose',
       tools: ['regexp', 'record'],
       toolName: {
-        regexp: '正则表达式提取',
+        regexp: '正则表达式文本提取',
         record: '录音播放'
       },
       listindex: -1,
@@ -81,7 +81,7 @@ export default {
   },
   computed: {
     count: function () {
-      return this.reg.c + ' result(s)'
+      return this.reg.c + ' 个结果'
     }
   },
   methods: {
@@ -162,24 +162,23 @@ export default {
   margin: 0 30% 5rem 30%;
   padding-top: 3rem;
   width: 40%;
-  .choice {
-    margin: 0 auto 1rem auto;
-    width: 15rem;
-    height: 3rem;
-    line-height: 3rem;
-    border-radius: 1rem;
-    font-size: .875rem;
-    cursor: pointer;
-    transition: .3s ease-in-out;
-  }
-  .regexp {
-    background-color: #efe;
-  }
-  .record {
-    background-color: #fee;
+  .content {
+    border-top: 1px solid #eee;
+    .choice {
+      padding: 1rem;
+      height: 3rem;
+      line-height: 3rem;
+      border-bottom: 1px solid #eee;
+      cursor: pointer;
+      &:hover {
+        background-color: #fafafa;
+      }
+    }
   }
   .back {
-    margin: 0 0 2rem 2rem;
+    position: absolute;
+    left: .5rem;
+    top: .5rem;
     width: 4rem;
     height: 2rem;
     line-height: 2rem;
@@ -194,6 +193,7 @@ export default {
   }
 
   .regcontent {
+    padding-top: 1rem;
     textarea, button {
       display: block;
       margin: 0 auto 1rem auto;
@@ -202,7 +202,7 @@ export default {
     textarea {
       padding: .5rem;
       width: 90%;
-      border: 1px solid #ddf;
+      border: 1px solid #eee;
       &:focus {
         border-color: #aaf;
       }
@@ -224,33 +224,41 @@ export default {
   }
 
   .reccontent {
+    padding-top: 1rem;
     .description {
       margin: 1rem auto;
-      padding: 1rem;
-      width: 75%;
-      border-radius: 1rem;
-      background-color: #eef;
+      padding: 1rem 2rem;
+      border-bottom: 1px solid #eee;
+      line-height: 1.25rem;
       text-align: left;
       font-size: .875rem;
+      transition: .2s ease-in-out;
+      &:hover {
+        background-color: #eee;
+      }
     }
   }
 
   .right {
     position: absolute;
-    width: 15rem;
     top: 3rem;
-    right: -15rem;
+    right: -17rem;
+    padding: .5rem 0 0 0;
+    width: 15rem;
+    border-radius: 1.5rem;
+    background-color: #f6f6ff;
     text-align: left;
+    overflow: hidden;
     .title {
-      padding: .25rem 0 0 0;
+      padding: .5rem 0 1rem 1rem;
+      font-weight: bold;
     }
     .activeindex {
       background-color: #eef;
     }
     .regl {
-      margin: .5rem 0;
-      padding: .5rem .75rem;
-      border-radius: .75rem;
+      padding: .75rem 1rem;
+      border-top: 1px solid #eee;
       transition: .2s ease-in-out;
       font-size: .875rem;
       line-height: 1.25rem;
@@ -260,11 +268,10 @@ export default {
       }
       cursor: pointer;
       &:hover {
-        background-color: #f5f5ff;
+        background-color: #f0f0ff;
       }
       .remove {
-        display: inline-block;
-        margin-left: 1rem;
+        float: right;
         width: 1rem;
         height: 1rem;
         background-image: url(../../public/remove.png);
@@ -281,11 +288,10 @@ export default {
     .right {
       position: relative;
       display: block;
-      width: calc(100% - 2rem);
+      width: calc(100% - 4rem);
       left: 0;
       top: 0;
-      margin: 2rem 0 5rem 0;
-      padding: 0 1rem;
+      margin: 2rem 2rem 5rem 2rem;
     }
   }
 }

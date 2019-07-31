@@ -39,9 +39,9 @@
     <transition name="slide-large" mode="out-in">
       <div class="add" v-show="addOpen||large_device">
         <div class="close" @click="addOpen=false"></div>
-        <div class="input-name"><input type='text' v-model='name' placeholder=""></div>
-        <div class="input-content"><textarea type='text' v-model='content' placeholder="" rows="10"></textarea></div>
-        <div class='replyto' v-show="toParent != 0">回复给<i>{{toParentName}}</i></div>
+        <div class="input-name"><input type='text' v-model='name' placeholder="这里写名字还是标题？"></div>
+        <div class="input-content"><textarea type='text' v-model='content' placeholder="反正这里是写内容的" rows="10"></textarea></div>
+        <div class='replyto' v-show="toParent != 0" @click='toParent=0'>回复给<i>{{toParentName}}</i><br>（点击取消）</div>
         <button @click="send"></button>
       </div>
     </transition>
@@ -177,7 +177,6 @@ export default {
       this.max_page = 1000
     },
     fetchComment (page) {
-      console.log(page)
       if (page > this.max_page) return    // reject request if page beyond max_page
       this.intSwitch = 1
       fetch(window.ip + 'comments?post=' + 53 + '&page=' + page + '&parent=0')
@@ -196,11 +195,9 @@ export default {
       })
     },
     fetchChildComments (allparent) {
-      console.log(allparent)
       fetch(window.ip + 'comments?post=' + 53 + '&parent=' + allparent.join(','))
       .then(res => {return res.json()})
       .then(json => {
-        console.log(json)
         json.map(v => {
           for (let i in this.data) {
             if (this.data[i].id === v.parent) {
@@ -219,6 +216,7 @@ export default {
         bus.$emit('pop', '还没有填姓名或内容哦')
         return
       }
+      this.intSwitch = 1
       let form = new FormData()
       form.append('author_name', this.name)
       form.append('content', this.content)
@@ -231,6 +229,8 @@ export default {
       }).then(() => {
         this.addOpen = false
         this.clearComment()
+        bus.$emit('pop', '已发送')
+        this.intSwitch = 1
         this.fetchComment(1)
       })
     }
@@ -385,7 +385,7 @@ export default {
       margin-bottom: 1rem;
       padding: .5rem .75rem;
       width: calc(100% - 1.5rem);
-      border: 1px solid #ccf;
+      border: 1px solid #eee;
       border-radius: 1rem;
       letter-spacing: 1px;
       font-size: .8125rem;
@@ -398,6 +398,11 @@ export default {
     .replyto {
       margin-bottom: 1rem;
       font-size: 15px;
+      cursor: pointer;
+      transition: color .2s ease-in-out;
+      &:hover {
+        color: #aaa;
+      }
     }
   }
 }
@@ -471,6 +476,7 @@ export default {
       .replyto {
         margin-bottom: 1rem;
         font-size: 14px;
+        cursor: pointer;
       }
     }
   }

@@ -187,6 +187,7 @@ export default {
   position: relative;
   margin-left: 30%;
   margin-right: 30%;
+  border-right: 1px solid #eee;
 }
 .article {
   padding: 2rem;

@@ -131,4 +131,9 @@ export default {
     color: #555;
   }
 }
+@media (max-width: 750px) {
+  .list {
+    padding-top: 0;
+  }
+}
 </style>

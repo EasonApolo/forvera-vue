@@ -129,21 +129,31 @@ export default {
     width: 100%;
     div, li {
       display: inline-block;
-      flex: 1 1 auto;
-      height: 1rem;
-      border: 0;
+      flex: 0 0 auto;
+      margin: 0;
+      padding: 0;
+      height: 2rem;
+      line-height: 2rem;
       vertical-align: top;
-      line-height: 1rem;
       text-align: center;
       font-size: .875rem;
     }
     li {
-      border-radius: 2rem;
+      width: 25%;
+      border-radius: 0;
+      border-bottom: 3px solid white;
+      &:hover {
+        background-color: white;
+      }
     }
     div {
       position: relative;
-      padding: .5rem .75rem;
+      flex: 1 1 auto;
     }
+  }
+  .active {
+    border-bottom: 3px solid #f1f1ff !important;
+    background-color: white !important;
   }
 }
 .nav {

@@ -39,7 +39,7 @@ export default {
   padding: .75rem 1.5rem;
   z-index: 1;
   font-size: .875rem;
-  background-color: rgb(221, 221, 221);
+  background-color: #f1f1ff;
   opacity: 0;
   transition: .4s ease-in-out;
   transform: translateX(100%);
