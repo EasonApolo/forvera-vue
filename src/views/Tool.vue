@@ -27,13 +27,17 @@
     
     <div class="content reccontent" v-if="active=='record'">
       <audio :src="rec.src" controls></audio>
-      <div class="description">{{rec.date}}<br>{{rec.description}}</div>
+      <div class="item description">{{rec.date}}<br>{{rec.description}}</div>
     </div>
     <div class="right" v-if="active=='record'">
       <div class="title">播放列表</div>
       <div v-for="(r, index) in reclist" :key="index" class="regl" @click="play(index)" :class="{activeindex:listindex===index}">
         <span @click="play(index)" >{{r.title.rendered}}</span>
       </div>
+    </div>
+
+    <div class="content" v-if="active=='chess'">
+      <div class="item"><a class='fulllink' href='http://forvera.me/chess'>启动！</a></div>
     </div>
 
   </div>
@@ -46,10 +50,11 @@ export default {
   data () {
     return {
       active: 'choose',
-      tools: ['regexp', 'record'],
+      tools: ['regexp', 'record', 'chess'],
       toolName: {
         regexp: '正则表达式文本提取',
-        record: '录音播放'
+        record: '录音播放',
+        chess: '自走棋'
       },
       listindex: -1,
       // reg
@@ -174,6 +179,20 @@ export default {
         background-color: #fafafa;
       }
     }
+    .item {
+      padding: 1rem 2rem;
+      border-bottom: 1px solid #eee;
+      line-height: 1.25rem;
+      font-size: .875rem;
+      transition: .2s ease-in-out;
+      &:hover {
+        background-color: #eee;
+      }
+      .fulllink {
+        display: inline-block;
+        width: 100%;
+      }
+    }
   }
   .back {
     position: absolute;
@@ -226,16 +245,7 @@ export default {
   .reccontent {
     padding-top: 1rem;
     .description {
-      margin: 1rem auto;
-      padding: 1rem 2rem;
-      border-bottom: 1px solid #eee;
-      line-height: 1.25rem;
       text-align: left;
-      font-size: .875rem;
-      transition: .2s ease-in-out;
-      &:hover {
-        background-color: #eee;
-      }
     }
   }
 
