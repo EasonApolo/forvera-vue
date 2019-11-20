@@ -1,6 +1,14 @@
 <template>
   <div class="about">
-    <div class='item'>哟，艾博，拉面一狗贼！</div>
+    <div class='item item-left'>
+      <div class='head'>Blogger 竟然想对来到这里的朋友说：</div>
+      <div class='li'><a href='https://zhidao.baidu.com/question/1580361828587019020.html'>哟，艾博，拉面一狗贼！</a></div>
+    </div>
+    <div class='item item-left'>
+      <div class='head'>Todo List</div>
+      <div class='li'>1. 文章页把提纲列在右边</div>
+      <div class='li'>2. 还是想把github issue用上来写todo</div>
+    </div>
     <div class='item'>
       <div id="chart" class="block">
         <div class="block-header">统计</div>
@@ -99,8 +107,19 @@ export default {
     padding: 1.5rem 0;
     border-top: 1px solid #eee;
     transition: .2s ease-in-out;
+    a {
+      text-decoration: underline;
+    }
     &:hover {
       background-color: #eee;
+    }
+    .head {
+      font-size: 1.125rem;
+      line-height: 2.5rem;
+    }
+    .li {
+      line-height: 1.5rem;
+      font-size: 0.875rem;
     }
     #chart {
       padding: 0 3rem;
@@ -117,6 +136,10 @@ export default {
         font-size: 13px;
       }
     }
+  }
+  .item-left {
+    padding: 1rem 2rem;
+    text-align: left;
   }
   .right {
     position: absolute;
