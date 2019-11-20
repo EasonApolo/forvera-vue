@@ -222,12 +222,12 @@ export default {
     /deep/ code {
       display: block;
       margin: .5rem 0;
-      padding: .75rem;
-      line-height: 1.5rem;
+      padding: .75rem 1.25rem;
+      line-height: 1.25rem;
       text-align: left;
-      background-color: #F4F4FF;
-      font-family: "monospace";
-      border-radius: 1rem;
+      background-color: #FaFaFF;
+      font-family: "Courier New";
+      border-radius: .5rem;
     }
     /deep/ pre {
       white-space: pre-wrap;

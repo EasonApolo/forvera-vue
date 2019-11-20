@@ -1,6 +1,6 @@
 <template>
   <div class="about">
-    <div class='item'>Welcome to the Grand Tournament, Champion.</div>
+    <div class='item'>哟，艾博，拉面一狗贼！</div>
     <div class='item'>
       <div id="chart" class="block">
         <div class="block-header">统计</div>
