@@ -46,7 +46,7 @@ export default {
 <style lang="scss">
 .tool {
   position: relative;
-  margin: 0 30% 0 30%;
+  margin: 0 0 0 30%;
   width: 40%;
   height: 100%;
   .wrapper {
@@ -54,6 +54,7 @@ export default {
     border-right: 1px solid #eee;
     padding-bottom: 5rem;
     padding-top: 3rem;
+    height: 100%;
   }
   .content {
     border-top: 1px solid #eee;

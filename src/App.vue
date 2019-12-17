@@ -51,6 +51,7 @@ export default {
 
 <style lang="scss">
 body {
+  height: 100%;
   margin: 0;
   -webkit-overflow-scrolling: touch;
   -webkit-tap-highlight-color:rgba(0,0,0,0);
@@ -81,6 +82,7 @@ ul {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
+  height: 100%;
 }
 .slide-left-enter-active, .slide-left-leave-active, .slide-right-enter-active, .slide-right-leave-active, .slide-up-enter-active, .slide-up-leave-active, .slide-down-enter-active, .slide-down-leave-active {
   transition: all .2s ease;
