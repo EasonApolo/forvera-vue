@@ -1,172 +1,60 @@
 <template>
   <div class="tool">
-    <div class="content" v-show="active=='choose'">
-      <div class="choice" v-for="(tool, index) in tools" :key="index" @click="active=tool" :class="tool">
-        {{toolName[tool]}}
+    <div class='wrapper' v-if="active==undefined">
+      <div class="content">
+        <div class="choice" v-for="(tool, index) in tools" :key="index" @click="active=tool" :class="tool">
+          {{toolName[tool]}}
+        </div>
       </div>
     </div>
-    <div class="back" v-show="active!=='choose'" @click="back()">返回</div>
-
-    <div class="content regcontent" v-if="active=='regexp'">
-      <textarea id="input" placeholder="input" rows="10" v-model="reg.input"></textarea>
-      <div style="position:relative">
-        <textarea id="reg" placeholder="regular expression" rows="2" v-model="reg.reg"></textarea>
-        <button id="save" @click="save">保存</button>
-      </div>
-      <button id="parse" @click="parse">提取</button>
-      <textarea id="output" placeholder="output" rows="10" v-text="reg.output"></textarea>
-      <span id="count" v-text="count"></span>
-    </div>
-    <div class="right" v-if="active=='regexp'">
-      <div class="title">已保存的正则表达式</div>
-      <div v-for="(reg, index) in reglist" :key="index" :class="{activeindex:listindex===index}" class="regl" @click="replace(index)">
-        <span>{{reg}}</span>
-        <span class="remove" @click.stop="remove(index)"></span>
-      </div>
-    </div>
-    
-    <div class="content reccontent" v-if="active=='record'">
-      <audio :src="rec.src" controls></audio>
-      <div class="item description">{{rec.date}}<br>{{rec.description}}</div>
-    </div>
-    <div class="right" v-if="active=='record'">
-      <div class="title">播放列表</div>
-      <div v-for="(r, index) in reclist" :key="index" class="regl" @click="play(index)" :class="{activeindex:listindex===index}">
-        <span @click="play(index)" >{{r.title.rendered}}</span>
-      </div>
-    </div>
-
-    <div class="content" v-if="active=='chess'">
-      <div class="item"><a class='fulllink' href='http://forvera.me/chess'>启动！</a></div>
-    </div>
-
+    <div class="back" v-show="active!==undefined" @click="back()">返回</div>
+    <component v-if='active' v-bind:is="active"></component>
   </div>
 </template>
 
 <script>
 import bus from '@/bus.js'
+import ToolRegex from '../components/ToolRegex'
+import ToolRecord from '../components/ToolRecord'
+import ToolChess from '../components/ToolChess'
 export default {
   name: 'tool',
   data () {
     return {
-      active: 'choose',
-      tools: ['regexp', 'record', 'chess'],
+      active: undefined,
+      tools: ['regex', 'record', 'chess'],
       toolName: {
-        regexp: '正则表达式文本提取',
+        regex: '正则表达式文本提取',
         record: '录音播放',
         chess: '自走棋'
       },
-      listindex: -1,
-      // reg
-      reg: {
-        input: '',
-        reg: '',
-        output: '',
-        c: 0
-      },
-      reglist: [],
-      // rec
-      reclist: [],
-      rec: {
-        src: '',
-        date: '',
-        description: ''
-      }
     }
   },
   components: {
-
-  },
-  created () {
-    if (localStorage.regex === 'undefined' || localStorage.regex === undefined) {
-      localStorage.regex = []
-    }
-    this.reglist = JSON.parse(localStorage.regex)
-    this.fetchRecList()
-  },
-  computed: {
-    count: function () {
-      return this.reg.c + ' 个结果'
-    }
+    'regex': ToolRegex,
+    'record': ToolRecord,
+    'chess': ToolChess,
   },
   methods: {
     back () {
-      this.active = 'choose'
-      this.listindex = -1
-      this.recsrc = ''
-      this.recdescription = ''
+      this.active = undefined
     },
-    fetchRecList () {
-      console.log(window.ip + 'media?media_type=audio')
-      fetch(window.ip + 'media?media_type=audio')
-      .then(res => {
-        return res.json()
-      }).then(json => {
-        this.reclist = json
-      })
-    },
-    play (index) {
-      this.listindex = index
-      this.rec.src = this.reclist[index].source_url
-      this.rec.description = this.reclist[index].description.rendered.split(/<p>|<\/p>/).slice(-2, -1)[0]
-      this.rec.date = this.reclist[index].date.split('T').join(' ').slice(0, -3)
-    },
-    //reg
-    parse: function () {
-      this.clearOutput()
-      if(this.reg.reg === '') {
-        bus.$emit('pop', '你还没有填正则表达式嘞')
-        return
-      }
-      let reg = new RegExp(this.reg.reg, 'g')
-      let c = 0
-      let result = null
-      while ((result = reg.exec(this.reg.input)) != null)  {
-          c++
-          if (result.length > 1) {
-              result = result.splice(1).join('\t');
-          }
-          this.print(result + "\r\n", c);
-      }
-      if (c === 0) {
-          this.print("", 0);
-      }
-      bus.$emit('pop', '提取完成')
-    },
-    clearOutput: function () {
-      this.reg.output = ''
-    },
-    print: function (out, c) {
-      this.reg.output = this.reg.output + out
-      this.c = c
-    },
-    replace: function (index) {
-      this.reg.reg = this.reglist[index]
-      this.listindex = index
-    },
-    remove: function (index) {
-      this.reglist.splice(index, 1)
-      this.listindex = -1
-    },
-    save: function () {
-      this.reglist.unshift(this.reg.reg)
-      bus.$emit('pop', '已保存在saved regexp中')
-    }
   },
-  watch: {
-    'reglist': function () {
-      localStorage.regex = JSON.stringify(this.reglist)
-    }
-  }
 }
 </script>
 
-<style scoped lang="scss">
+<style lang="scss">
 .tool {
   position: relative;
-  margin: 0 30% 5rem 30%;
-  padding-top: 3rem;
+  margin: 0 30% 0 30%;
   width: 40%;
+  height: 100%;
+  .wrapper {
+    box-sizing: content-box;
+    border-right: 1px solid #eee;
+    padding-bottom: 5rem;
+    padding-top: 3rem;
+  }
   .content {
     border-top: 1px solid #eee;
     .choice {
@@ -205,47 +93,9 @@ export default {
     font-size: .875rem;
     background-color: #f4f4ff;
     cursor: pointer;
-    transition: .2s ease-in-out;
+    transition: background-color .2s ease-in-out;
     &:hover {
       background-color: #eef;
-    }
-  }
-
-  .regcontent {
-    padding-top: 1rem;
-    textarea, button {
-      display: block;
-      margin: 0 auto 1rem auto;
-      transition: all .2s ease;
-    }
-    textarea {
-      padding: .5rem;
-      width: 90%;
-      border: 1px solid #eee;
-      &:focus {
-        border-color: #aaf;
-      }
-    }
-    button {
-      padding: .25rem .5rem;
-      background-color: white;
-      border: solid 1px #ccf;
-      border-radius: .75rem;
-      cursor: pointer;
-      outline: none;
-    }
-    #save {
-      position: absolute;
-      right: 5%;
-      top: .5rem;
-      background-color: transparent;
-    }
-  }
-
-  .reccontent {
-    padding-top: 1rem;
-    .description {
-      text-align: left;
     }
   }
 
@@ -256,7 +106,7 @@ export default {
     padding: .5rem 0 0 0;
     width: 15rem;
     border-radius: 1.5rem;
-    background-color: #f6f6ff;
+    background-color: #f6f6fc;
     text-align: left;
     overflow: hidden;
     .title {
@@ -264,7 +114,7 @@ export default {
       font-weight: bold;
     }
     .activeindex {
-      background-color: #eef;
+      background-color: #eeeef4;
     }
     .regl {
       padding: .75rem 1rem;
@@ -278,7 +128,7 @@ export default {
       }
       cursor: pointer;
       &:hover {
-        background-color: #f0f0ff;
+        background-color: #eeeef4;
       }
       .remove {
         float: right;
