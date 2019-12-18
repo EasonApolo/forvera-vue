@@ -3,6 +3,11 @@
     <div class="content">
       <div class="item"><a class='fulllink' href='http://forvera.me/chess'>启动！</a></div>
     </div>
+    <div class="right">
+      <div class='rbox'>
+        <div class="title">尚未完工</div>
+      </div>
+    </div>
   </div>
 </template>
 

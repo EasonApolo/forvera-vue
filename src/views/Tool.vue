@@ -13,7 +13,6 @@
 </template>
 
 <script>
-import bus from '@/bus.js'
 import ToolRegex from '../components/ToolRegex'
 import ToolRecord from '../components/ToolRecord'
 import ToolChess from '../components/ToolChess'
@@ -24,8 +23,8 @@ export default {
       active: undefined,
       tools: ['regex', 'record', 'chess'],
       toolName: {
-        regex: '正则表达式文本提取',
-        record: '录音播放',
+        regex: '正则提取',
+        record: 'Record Player',
         chess: '自走棋'
       },
     }
@@ -106,37 +105,40 @@ export default {
     right: -17rem;
     padding: .5rem 0 0 0;
     width: 15rem;
-    border-radius: 1.5rem;
-    background-color: #f6f6fc;
-    text-align: left;
-    overflow: hidden;
-    .title {
-      padding: .5rem 0 1rem 1rem;
-      font-weight: bold;
-    }
-    .activeindex {
-      background-color: #eeeef4;
-    }
-    .regl {
-      padding: .75rem 1rem;
-      border-top: 1px solid #eee;
-      transition: .2s ease-in-out;
-      font-size: .875rem;
-      line-height: 1.25rem;
-      span {
-        word-wrap: break-word;
-        vertical-align: middle;
+    .rbox {
+      margin-bottom: 1rem;
+      border-radius: 1rem;
+      background-color: #f6f6fc;
+      text-align: left;
+      overflow: hidden;
+      .title {
+        padding: 1rem;
+        font-weight: bold;
       }
-      cursor: pointer;
-      &:hover {
+      .activeindex {
         background-color: #eeeef4;
       }
-      .remove {
-        float: right;
-        width: 1rem;
-        height: 1rem;
-        background-image: url(../../public/remove.png);
-        background-size: contain;
+      .ritem {
+        padding: .75rem 1rem;
+        border-top: 1px solid #eee;
+        font-size: .875rem;
+        line-height: 1.25rem;
+        transition: background-color .2s ease-in-out;
+        span {
+          word-wrap: break-word;
+          vertical-align: middle;
+        }
+        cursor: pointer;
+        &:hover {
+          background-color: #eeeef4;
+        }
+        .remove {
+          float: right;
+          width: 1rem;
+          height: 1rem;
+          background-image: url(../../public/remove.png);
+          background-size: contain;
+        }
       }
     }
   }

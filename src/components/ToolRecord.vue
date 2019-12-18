@@ -5,9 +5,11 @@
       <div class="item description">{{rec.date}}<br>{{rec.description}}</div>
     </div>
     <div class="right">
-      <div class="title">播放列表</div>
-      <div v-for="(r, index) in reclist" :key="index" class="regl" @click="play(index)" :class="{activeindex:listindex===index}">
-        <span @click="play(index)" >{{r.title.rendered}}</span>
+      <div class='rbox'>
+        <div class="title">播放列表</div>
+        <div v-for="(r, index) in reclist" :key="index" class="ritem" @click="play(index)" :class="{activeindex:listindex===index}">
+          <span @click="play(index)" >{{r.title.rendered}}</span>
+        </div>
       </div>
     </div>
   </div>

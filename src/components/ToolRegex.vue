@@ -11,10 +11,27 @@
       <span id="count" v-text="count"></span>
     </div>
     <div class="right">
-      <div class="title">已保存的正则表达式</div>
-      <div v-for="(reg, index) in reglist" :key="index" :class="{activeindex:listindex===index}" class="regl" @click="replace(index)">
-        <span>{{reg}}</span>
-        <span class="remove" @click.stop="remove(index)"></span>
+      <div class='rbox'>
+        <div class="title">已保存的正则表达式</div>
+        <div v-for="(reg, index) in reglist" :key="index" :class="{activeindex:listindex===index}" class="ritem" @click="replace(index)">
+          <span>{{reg}}</span>
+          <span class="remove" @click.stop="remove(index)"></span>
+        </div>
+      </div>
+      <div class='rbox'>
+        <div class="title">说明</div>
+        <div class="ritem"><b>特点</b><br>给目标词语加上()可以单独提取词语，多个词语自动用tab分隔，可以直接复制进Excel。</div>
+        <div class="ritem"><b>例子</b><br><i style='color:#aaa'>epoch 3500: acc 77.6%, loss 1.3</i><br>epoch\s(\d+).+([\d\.]+),.+([\d\.]+)<br>> 3500	77.6	1.353</div>
+        <div class="ritem flex-item">
+          <span><b>常用</b></span>
+          <span>\s空格</span>
+          <span>\d数字</span>
+          <span>\w字母</span>
+          <span>.任意字符</span>
+          <span>+一个或以上</span>
+          <span>*零个或以上</span>
+          <span>[]可替换</span>
+          <span>\n \t</span></div>
       </div>
     </div>
   </div>
@@ -22,6 +39,7 @@
 
 
 <script>
+import bus from '../bus.js'
 export default {
   name: 'ToolRegex',
   data () {
@@ -137,6 +155,15 @@ export default {
     right: 5%;
     top: .5rem;
     background-color: transparent;
+  }
+}
+.right {
+  .flex-item {
+    display: flex;
+    flex-flow: wrap;
+    span {
+      flex: 1 1 auto;
+    }
   }
 }
 </style>

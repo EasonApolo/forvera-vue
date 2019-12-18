@@ -1,5 +1,5 @@
 <template>
-  <div class="twit">
+  <div class="twit" id='twit'>
     <Loading :intSwitch=intSwitch></Loading>
     <div class="main">
       <div class="item" v-for="(item, index) in data" :key="index">
@@ -24,7 +24,7 @@
             </div>
           </div>
         </div>
-        <div v-for="child in item.child" :key='child.author' class="item item-child">
+        <div v-for="(child, index) in item.child" :key='index' class="item item-child">
           <div class='meta'>
             <div class="name">{{child.author_name}}</div>
             <div class="date">{{slicedDate(child.date)}}</div>
@@ -39,8 +39,8 @@
     <transition name="slide-large" mode="out-in">
       <div class="add" v-show="addOpen||large_device">
         <div class="close" @click="addOpen=false"></div>
-        <div class="input-name"><input type='text' v-model='name' placeholder="这里写名字还是标题？"></div>
-        <div class="input-content"><textarea type='text' v-model='content' placeholder="反正这里是写内容的" rows="10"></textarea></div>
+        <div class="input-name"><input type='text' v-model='name' placeholder="head"></div>
+        <div class="input-content"><textarea type='text' v-model='content' placeholder="body" rows="10"></textarea></div>
         <div class='replyto' v-show="toParent != 0" @click='toParent=0'>回复给<i>{{toParentName}}</i><br>（点击取消）</div>
         <button @click="send"></button>
       </div>
@@ -155,7 +155,7 @@ export default {
     },
     scrollBottom () {
       if (this.$route.path != '/twit') return
-      if (this.intSwitch == 0 && document.documentElement.scrollTop + document.documentElement.clientHeight >= document.body.clientHeight) {
+      if (this.intSwitch == 0 && document.documentElement.scrollTop + document.documentElement.clientHeight >= document.getElementById('twit').clientHeight) {
         let pageToFetch = Math.ceil(this.data.length / 10.0 + 1)
         this.fetchComment(pageToFetch)
       }
@@ -387,9 +387,9 @@ export default {
       width: calc(100% - 1.5rem);
       border: 1px solid #eee;
       border-radius: 1rem;
-      letter-spacing: 1px;
       font-size: .8125rem;
-      font-family: 'Avenir', Helvetica, Arial, sans-serif;
+      font-family: Verdana, Helvetica, Arial, sans-serif;
+      line-height: 1.25rem;
       transition: all .2s ease;
       &:hover, &:focus {
         border-color: #88f;
