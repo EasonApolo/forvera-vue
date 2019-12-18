@@ -84,6 +84,23 @@ ul {
   color: #2c3e50;
   height: 100%;
 }
+/*这个好像必须要有，height可以没有*/
+::-webkit-scrollbar {
+  width: 10px;
+}
+/*滚动条背景*/
+::-webkit-scrollbar-track-piece {
+  background-color: #fff; 
+  border-radius: 0;
+}
+/*垂直滚动条的样式*/
+::-webkit-scrollbar-thumb:vertical { 
+    background-color: #ccc;
+    border-radius: 16px;
+    outline: 2px solid #fff;
+    outline-offset: -2px;
+    border: 2px solid #fff;
+}
 .slide-left-enter-active, .slide-left-leave-active, .slide-right-enter-active, .slide-right-leave-active, .slide-up-enter-active, .slide-up-leave-active, .slide-down-enter-active, .slide-down-leave-active {
   transition: all .2s ease;
 }
