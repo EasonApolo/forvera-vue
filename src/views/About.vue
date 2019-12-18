@@ -1,8 +1,7 @@
 <template>
   <div class="about">
     <div class='item item-left'>
-      <div class='head'>Blogger 竟然想对来到这里的朋友说：</div>
-      <div class='li'><a href='https://zhidao.baidu.com/question/1580361828587019020.html'>哟，艾博，拉面一狗贼！</a></div>
+      <div class='head'>哟，艾博，拉面一狗贼！</div>
     </div>
     <div class='item item-left'>
       <div class='head'>Todo List</div>
@@ -103,6 +102,9 @@ export default {
   position: relative;
   margin: 0 30%;
   padding: 3rem 0;
+  height: 100%;
+  box-sizing: content-box;
+  border-right: 1px solid #eee;
   .item {
     padding: 1.5rem 0;
     border-top: 1px solid #eee;

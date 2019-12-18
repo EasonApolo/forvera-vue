@@ -98,7 +98,7 @@ export default {
     },
     print: function (out, c) {
       this.reg.output = this.reg.output + out
-      this.c = c
+      this.reg.c = c
     },
     replace: function (index) {
       this.reg.reg = this.reglist[index]

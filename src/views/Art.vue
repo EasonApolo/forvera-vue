@@ -27,6 +27,15 @@
       <li><input type="submit" value="提交" @click="addComment" :class="{disabled:addSending}"></li>
     </ul>
     <div id="toTop" v-show="scrollY > 800" @click="scrollToTop"></div>
+    <div class='right'>
+      <div class='rbox' v-if="titles.length > 0">
+        <div class='title'>目录</div>
+        <div class='item' v-for='(t, i) in titles' :key='i' :class='{secondTitle:t[1]!=undefined}' @click='jumpToTitle(i)'>
+          <span v-if='t[1]==undefined'>{{t[0]}}</span>
+          {{t[2]}}
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -41,6 +50,7 @@ export default {
       //data
       artData: {
       },
+      titles: [],
       commentsData: {},
       commentsLoadOK: false,
       navData: [],
@@ -48,6 +58,7 @@ export default {
       switch1: 0,
       switch2: 0,
       scrollY: 0,
+      autoScrolling: undefined,
       //addComment
       commentToIndex: -1,
       addName: '',
@@ -91,12 +102,16 @@ export default {
     scrollToTop: function () {
       let h = this.scrollY
       let i = 0
-      let intt = setInterval(() => {
+      let last = h
+      this.autoScrolling = setInterval(() => {
         //200*0.012=2.4s
         i+=0.006
+        //如果在自动回顶时，用户scroll了，scrollTop就会和last不同，这时就停止
+        if (last != document.documentElement.scrollTop) clearInterval(this.autoScrolling)
         //偶数次方用1-Math，奇数次用1+Math
         document.documentElement.scrollTop = h - h * (1-Math.pow(i-1, 8))
-        if (i >= 1) clearInterval(intt)
+        last = document.documentElement.scrollTop
+        if (i >= 1) clearInterval(this.autoScrolling)
       }, 12)
     },
     addComment () {
@@ -132,7 +147,28 @@ export default {
       }).then(json => {
         this.artData = json
         this.switch1 = 0
+        setTimeout(this.getTitles, 0)
       })
+    },
+    getTitles() {
+      let reg = />([IVX]+\.)([IVX]+)*(.+?(?=<))/g
+      let titles = []
+      let res
+      while ((res = reg.exec(this.artData.content.rendered)) != null)  {
+        titles.push([res[1], res[2], res[3]])
+      }
+      this.titles = titles
+      console.log(titles)
+    },
+    jumpToTitle (t_id) {
+      let t = this.titles[t_id].join('')
+      let p_nodes = document.getElementsByTagName('p')
+      for (let i = 0; i < p_nodes.length; i++) {
+        if (p_nodes[i].innerText == t) {
+          document.documentElement.scrollTop = p_nodes[i].offsetTop
+          break
+        }
+      }
     },
     fetchComment () {
       this.switch2 = 1
@@ -234,6 +270,37 @@ export default {
     }
   }
 }
+.right {
+  position: absolute;
+  right: -17rem;
+  width: 15rem;
+  top: 3rem;
+  .rbox {
+    border-radius: 1rem;
+    background-color: #f6f6fc;
+    text-align: left;
+    font-size: .875rem;
+    .title {
+      padding: .75rem 1rem;
+      border-bottom: 1px solid #eee;
+      font-size: 16px;
+      font-weight: bold;
+    }
+    .item {
+      padding: .5rem 1rem;
+      color: #555;
+      cursor: pointer;
+      transition: color .3s ease;
+      &:hover {
+        color: #000;
+      }
+    }
+    .secondTitle {
+      padding: 0 1.5rem .5rem 2rem;
+      color: #888;
+    }
+  }
+}
 #comment-header {
   padding: 0 2rem;
   font-size: .9375rem;
@@ -322,13 +389,18 @@ export default {
   height: 2rem;
   right: 2rem;
   bottom: 8rem;
-  background-color: #eeeeff;
+  background-color: #eeeef4;
   background-image: url(../../public/top.png);
-  background-size: 40% 40%;
+  background-size: 30% 30%;
   background-position: 50% 50%;
   background-repeat: no-repeat;
   border-radius: 50%;
   cursor: pointer;
+  transition: .2s ease;
+  &:hover {
+    box-shadow: 0px 2px 1px 2px #f8f8f8;
+    transform: translateY(-2px);
+  }
 }
 @media (max-width: 750px) {
   .art {
@@ -347,6 +419,9 @@ export default {
   .art .article .content img {
     max-width: 100%;
     height: auto;
+  }
+  .right {
+    display: none;
   }
 }
 </style>
