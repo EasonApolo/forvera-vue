@@ -51,6 +51,7 @@ export default {
 
 <style lang="scss">
 body {
+  height: 100%;
   min-height: 100%;
   margin: 0;
   -webkit-overflow-scrolling: touch;
@@ -77,12 +78,13 @@ ul {
   margin: 0;
 }
 #app {
+  height: 100%;
+  min-height: 100%;
+  text-align: center;
+  color: #2c3e50;
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  height: 100%;
 }
 /*这个好像必须要有，height可以没有*/
 ::-webkit-scrollbar {

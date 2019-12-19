@@ -152,7 +152,7 @@ export default {
   position: relative;
   margin: 0 30%;
   padding: 3rem 0;
-  height: 100%;
+  min-height: 100%;
   box-sizing: content-box;
   border-right: 1px solid #eee;
   .item {
