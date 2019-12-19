@@ -51,7 +51,7 @@ export default {
 
 <style lang="scss">
 body {
-  height: 100%;
+  min-height: 100%;
   margin: 0;
   -webkit-overflow-scrolling: touch;
   -webkit-tap-highlight-color:rgba(0,0,0,0);

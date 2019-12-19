@@ -271,10 +271,10 @@ export default {
   }
 }
 .right {
-  position: absolute;
-  right: -17rem;
-  width: 15rem;
+  position: fixed;
+  left: calc(70% + 2rem);
   top: 3rem;
+  width: 15rem;
   .rbox {
     border-radius: 1rem;
     background-color: #f6f6fc;

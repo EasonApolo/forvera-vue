@@ -18,7 +18,7 @@ import bus from '@/bus.js'
 import Loading from '@/components/Loading.vue'
 export default {
   name: 'List',
-  props: {cat: {}, per_page: {}, page: {default: 1}},
+  props: {cat: {}, per_page: {}, page: {default: 1}, tag: {}},
   data () {
     return {
       items: [],
@@ -38,7 +38,7 @@ export default {
       }
     },
     catAndPage: function () {
-      return [this.cat, this.page].join()
+      return [this.cat, this.page, this.tag].join()
     },
     slicedDate: function () {
       return function (d) {
@@ -56,12 +56,15 @@ export default {
     },
     fetchData: function () {
       this.intSwitch = 1
-      fetch(window.ip + 'posts' + '?categories=' + this.cat + '&page=' + this.page + '&per_page=' + this.per_page)
+      let query = window.ip + 'posts' + '?categories=' + this.cat + '&page=' + this.page + '&per_page=' + this.per_page
+      if (this.tag != undefined) query += '&tags=' + this.tag
+      fetch(query)
       .then(res => {
         return res.json()
       }).then(json => {
         this.intSwitch = 0
         this.items = json
+        this.$emit('loadOK')
       })
     }
   },

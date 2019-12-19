@@ -1,13 +1,21 @@
 <template>
   <div class="home">
-    <ul class="category">
-      <div>分类</div>
-      <li v-for="c in category" :key="c.id" @click="setCat(c)" :class="{active:(c.id===cat)}">
-        {{c.name}}({{c.count}})
-      </li>
-    </ul>
+    <div class='right'>
+      <ul class="rbox category">
+        <div>分类</div>
+        <li v-for="c in category" :key="c.id" @click="setCat(c)" :class="{disabled:locked,active:(c.id===cat)}">
+          {{c.name}} ({{c.count}})
+        </li>
+      </ul>
+      <ul class="rbox tags">
+        <div>标签</div>
+        <li v-for="t in tags" :key="t.id" @click="setTag(t)" :class="{active:(t.id===tag),disabled:locked}" v-show="t.description.includes(cat)">
+          {{t.name}} ({{t.count}})
+        </li>
+      </ul>
+    </div>
     <div class="list-wrapper">
-      <List :cat="cat" :page="page" :per_page="per_page"/>
+      <List :cat="cat" :page="page" :per_page="per_page" :tag='tag' @loadOK='unlock()' />
     </div>
     <div class="nav">
       <span @click="setPage(page-1)" class="pre" :class="{disable:isPage(page-1)}">上一页</span>
@@ -26,9 +34,12 @@ export default {
     return {
       category: [],
       cat: 0,
+      tags: [],
+      tag: undefined,
       page: 1,
       page_count: 1,
-      per_page: 5
+      per_page: 5,
+      locked: false,
     }
   },
   components: {
@@ -36,6 +47,7 @@ export default {
   },
   created () {
     this.fetchCategory()
+    this.fetchTag()
   },
   computed: {
     isPage: function () {
@@ -62,17 +74,59 @@ export default {
         this.category = json
       })
     },
+    fetchTag: function () {
+      fetch(window.ip + 'tags')
+      .then(res => {
+        return res.json()
+      })
+      .then(json => {
+        setTimeout((json) => {
+          for (let i in json) {
+            json.description = json[i].description.split(',').map(n => parseInt(n))
+          }
+        })
+        this.tags = json
+      })
+    },
     setCat: function (cat) {
+      if (this.locked) return
+      this.lock()
       this.cat = cat.id
+      if (this.tag != undefined) {
+        for (let i in this.tags) {
+          if (this.tags[i].id == this.tag) {
+            if (!this.tags[i].description.includes(cat)) {
+              this.tag = undefined
+            }
+          }
+        }
+      }
       this.page = 1
       this.page_count = Math.ceil(cat.count / this.per_page)
+      this.lock()
     },
     setPage: function (page_id) {
+      if (this.locked) return
+      this.lock()
       if (page_id < 1 || page_id > this.page_count) {
         bus.$emit('pop', '没有更多啦')
         return
       }
       this.page = page_id
+      this.lock()
+    },
+    setTag: function (tag) {
+      if (this.locked) return
+      this.lock()
+      this.tag = tag.id
+      this.page = 1
+      this.page_count = Math.ceil(tag.count / this.per_page)
+    },
+    unlock: function () {
+      this.locked = false
+    },
+    lock: function () {
+      this.locked = true
     }
   }
 }
@@ -81,38 +135,46 @@ export default {
 <style scoped lang="scss">
 .home {
   position: relative;
-  margin-left: 30%;
-  width: 40%;
-  padding-right: 30%;
+  margin: 0 30%;
   padding-bottom: 3rem;
-}
-.category {
-  position: fixed;
-  top: 0;
-  right: calc(30% - 13rem);
-  padding: 2rem 0rem 0 0rem;
-  width: calc(13rem);
+  width: 40%;
   height: 100%;
-  border-left: 1px solid #eee;
-  font-size: .875rem;
-  text-align: left;
-  li {
-    margin: .5rem 2rem;
-    padding: .5rem 1rem;
-    border-radius: 2rem;
-    transition: .2s;
-    user-select: none;
-    cursor: pointer;
-    &:hover {
-      background-color: #eeeeff;
+  border-right: 1px solid #eee;
+}
+.right {
+  position: fixed;
+  left: calc(70% + 2rem);
+  padding-top: 3rem;
+  .rbox {
+    width: 9rem;
+    border-radius: .75rem;
+    font-size: .875rem;
+    text-align: left;
+    li {
+      margin: .25rem 0;
+      padding: .5rem 1rem;
+      border-radius: 2rem;
+      transition: .2s;
+      user-select: none;
+      cursor: pointer;
+      transition: color .2s ease-in-out;
+      &:hover {
+        background-color: #eeeeff;
+      }
+    }
+    div {
+      padding: .5rem 0;
+      font-size: 1rem;
+    }
+    .disabled {
+      color: #888;
+    }
+    .active {
+      background-color: #f1f1ff
     }
   }
-  div {
-    padding: .5rem 2rem;
-    font-size: 1rem;
-  }
-  .active {
-    background-color: #f1f1ff
+  .tags {
+    width: 11rem;
   }
 }
 @media (max-width: 750px) {
@@ -121,34 +183,41 @@ export default {
     padding-right: 0;
     width: 100%;
   }
-  .category {
-    display: flex;
+  .right {
     position: relative;
+    left: 0;
     right: 0;
     padding: 0;
     width: 100%;
-    div, li {
-      display: inline-block;
-      flex: 0 0 auto;
-      margin: 0;
-      padding: 0;
-      height: 2rem;
-      line-height: 2rem;
-      vertical-align: top;
-      text-align: center;
-      font-size: .875rem;
-    }
-    li {
-      width: 25%;
-      border-radius: 0;
-      border-bottom: 3px solid white;
-      &:hover {
-        background-color: white;
+    .rbox {
+      display: flex;
+      width: 100%;
+      div, li {
+        display: inline-block;
+        flex: 0 0 auto;
+        margin: 0;
+        padding: 0;
+        height: 2rem;
+        line-height: 2rem;
+        vertical-align: top;
+        text-align: center;
+        font-size: .875rem;
+      }
+      li {
+        width: 25%;
+        border-radius: 0;
+        border-bottom: 3px solid white;
+        &:hover {
+          background-color: white;
+        }
+      }
+      div {
+        position: relative;
+        flex: 1 1 auto;
       }
     }
-    div {
-      position: relative;
-      flex: 1 1 auto;
+    .tags {
+      display: none;
     }
   }
   .active {

@@ -4,14 +4,22 @@
       <div class='head'>哟，艾博，拉面一狗贼！</div>
     </div>
     <div class='item item-left'>
-      <div class='head'>Todo List</div>
-      <div class='li'>1. 文章页把提纲列在右边</div>
-      <div class='li'>2. 还是想把github issue用上来写todo</div>
+      <div class='head'>最近更新</div>
+      <Loading :intSwitch=switcher.commit></Loading>
+      <div class='li commit' v-for="([v, ls], i) in commits" :key='i'>
+        <div class='v'>{{v}}</div>
+        <div class='l'><div v-for="(l, j) in ls" :key="j">{{l}}</div></div>
+      </div>
     </div>
-    <div class='item'>
+    <div class='item item-left'>
+      <div class='head'>Todo List</div>
+      <Loading :intSwitch=switcher.todo></Loading>
+      <div class='li' v-for="(todo, i) in todos" :key='i'>{{todo}}</div>
+    </div>
+    <div class='item item-left'>
+      <div class="head">统计</div>
       <div id="chart" class="block">
-        <div class="block-header">统计</div>
-        <Loading :intSwitch=intSwitch></Loading>
+        <Loading :intSwitch=switcher.chart></Loading>
         <svg version="1.1" xmlns="http://www.w3.org/2000/svg">  
           <defs>
             <linearGradient id="orange_red" x1="0%" y1="100%" x2="0%" y2="0%">
@@ -42,10 +50,16 @@ export default {
   name: 'about',
   data () {
     return {
-      intSwitch: 0,
+      switcher: {
+        chart: 0,
+        todo: 0,
+        commit: 0,
+      },
       points: '',
       posts: [],
-      years: []
+      years: [],
+      todos: [],
+      commits: [],
     }
   },
   components: {
@@ -55,22 +69,24 @@ export default {
   },
   mounted () {
     this.fetchData()
+    this.fetchTodo()
+    this.fetchCommit()
   },
   computed: {},
   methods: {
     fetchData () {
-      this.intSwitch = 1
-      fetch(window.ip + 'posts?per_page=' + 100)
+      this.switcher.chart = 1
+      fetch(window.ip + 'posts?context=embed&per_page=' + 100)
       .then(res => {
         return res.json()
       }).then(json => {
         this.posts = json
-        this.intSwitch = 0
+        this.switcher.chart = 0
         this.process()
       })
     },
     process () {
-      let svgWidth = document.getElementById('chart').offsetWidth - 3 * 2 * 16
+      let svgWidth = document.getElementById('chart').offsetWidth
       let startYear = 2016
       let endYear = 2020
       let month = []
@@ -92,8 +108,42 @@ export default {
       for (let i in y) {
         this.points += x[i] + ',' + y[i] + ' '
       }
+    },
+    fetchTodo () {
+      this.switcher.todo = 1
+      fetch('https://api.github.com/repos/easonapolo/forvera-vue/issues?creator=easonapolo')
+      .then(res => {
+        return res.json()
+      }).then(json => {
+        let todos = []
+        for (let i in json) {
+          todos.push(json[i].body)
+        }
+        this.todos = todos
+        this.switcher.todo = 0
+      })
+    },
+    fetchCommit () {
+      this.switcher.commit = 1
+      let d = new Date()
+      d.setMonth(d.getMonth()-3)
+      fetch(`https://api.github.com/repos/easonapolo/forvera-vue/commits?since=${d.toISOString()}`)
+      .then(res => {
+        return res.json()
+      }).then(json => {
+        let commits = []
+        for (let i in json) {
+          let m = json[i].commit.message
+          let [v, ls] = m.split('\n\n')
+          ls = ls.split('\n')
+          commits.push([v, ls])
+          if (i == 4) break
+        }
+        this.commits = commits
+        this.switcher.commit = 0
+      })
     }
-  }
+  },
 }
 </script>
 
@@ -124,7 +174,7 @@ export default {
       font-size: 0.875rem;
     }
     #chart {
-      padding: 0 3rem;
+      padding: 0 0;
       svg {
         width: 100%;
         height: 108px;
@@ -136,6 +186,16 @@ export default {
         color: #888;
         font-style: italic;
         font-size: 13px;
+      }
+    }
+    .commit {
+      display: flex;
+      .v {
+        flex: 0 0 auto;
+        width: 5rem;
+      }
+      .l {
+        flex: 1 1 auto;
       }
     }
   }
