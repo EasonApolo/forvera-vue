@@ -6,7 +6,7 @@
     <div class='item item-left'>
       <div class='head'>最近更新</div>
       <Loading :intSwitch=switcher.commit></Loading>
-      <div class='li commit' v-for="([v, ls], i) in commits" :key='i'>
+      <div class='li' v-for="([v, ls], i) in commits" :key='i'>
         <div class='v'>{{v}}</div>
         <div class='l'><div v-for="(l, j) in ls" :key="j">{{l}}</div></div>
       </div>
@@ -14,7 +14,11 @@
     <div class='item item-left'>
       <div class='head'>Todo List</div>
       <Loading :intSwitch=switcher.todo></Loading>
-      <div class='li' v-for="(todo, i) in todos" :key='i'>{{todo}}</div>
+      <div v-for="(li, i) in todos" :key='i'>
+        <div class='li' v-for="([p, c], j) in li" :key='j'>
+          <div class='v'>{{p}}</div><div class='l'>{{c}}</div>
+        </div>
+      </div>
     </div>
     <div class='item item-left'>
       <div class="head">统计</div>
@@ -117,7 +121,8 @@ export default {
       }).then(json => {
         let todos = []
         for (let i in json) {
-          todos.push(json[i].body)
+          let todo = json[i].body.split('\r\n').map(v => v.split(' '))
+          todos.push(todo)
         }
         this.todos = todos
         this.switcher.todo = 0
@@ -151,7 +156,7 @@ export default {
 .about {
   position: relative;
   margin: 0 30%;
-  padding: 3rem 0;
+  padding: 2rem 0;
   min-height: 100%;
   box-sizing: content-box;
   border-right: 1px solid #eee;
@@ -170,8 +175,16 @@ export default {
       line-height: 2.5rem;
     }
     .li {
+      display: flex;
       line-height: 1.5rem;
       font-size: 0.875rem;
+      .v {
+        flex: 0 0 auto;
+        width: 5rem;
+      }
+      .l {
+        flex: 1 1 auto;
+      }
     }
     #chart {
       padding: 0 0;
@@ -186,16 +199,6 @@ export default {
         color: #888;
         font-style: italic;
         font-size: 13px;
-      }
-    }
-    .commit {
-      display: flex;
-      .v {
-        flex: 0 0 auto;
-        width: 5rem;
-      }
-      .l {
-        flex: 1 1 auto;
       }
     }
   }
@@ -252,10 +255,10 @@ export default {
 }
 @media (max-width: 750px) {
   .about {
-    margin: 0 3rem;
     width: 100%;
-    padding: 5rem 0;
+    padding: 2rem 0 3rem 0;
     margin: 0;
+    border-right: none;
     .right {
       position: relative;
       margin: 1rem auto;

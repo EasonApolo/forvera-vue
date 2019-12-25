@@ -26,7 +26,7 @@
       <li><input name="name" placeholder="名字" v-model="addName"></li>
       <li><input type="submit" value="提交" @click="addComment" :class="{disabled:addSending}"></li>
     </ul>
-    <div id="toTop" v-show="scrollY > 800" @click="scrollToTop"></div>
+    <div class="scrollToTop" :class="{scrollToBottom:toBottom}" @click="scrollToTop"></div>
     <div class='right'>
       <div class='rbox' v-if="titles.length > 0">
         <div class='title'>目录</div>
@@ -85,6 +85,9 @@ export default {
         ds = ds.slice(0,3).join('-') + ' ' + ds.slice(3,5).join(':')
         return ds
       }
+    },
+    toBottom: function () {
+      return this.scrollY <= 800
     }
   },
   created () {
@@ -100,19 +103,32 @@ export default {
                 document.body.scrollTop;
     },
     scrollToTop: function () {
-      let h = this.scrollY
+      if (this.autoScrolling) return
+      let src, tgt
+      if (this.toBottom) {
+        src = this.scrollY
+        tgt = document.body.clientHeight - document.documentElement.clientHeight
+      } else {
+        src = this.scrollY
+        tgt = 0
+      }
       let i = 0
-      let last = h
+      // init last as src
+      let last = src
       this.autoScrolling = setInterval(() => {
         //200*0.012=2.4s
-        i+=0.006
+        i = Math.min(1, i+0.006)
         //如果在自动回顶时，用户scroll了，scrollTop就会和last不同，这时就停止
-        if (last != document.documentElement.scrollTop) clearInterval(this.autoScrolling)
+        if (last != document.documentElement.scrollTop) this.clearInterval()
         //偶数次方用1-Math，奇数次用1+Math
-        document.documentElement.scrollTop = h - h * (1-Math.pow(i-1, 8))
+        document.documentElement.scrollTop = src +  (tgt-src) * (1-Math.pow(i-1, 8))
         last = document.documentElement.scrollTop
-        if (i >= 1) clearInterval(this.autoScrolling)
+        if (i >= 1) this.clearInterval()
       }, 12)
+    },
+    clearInterval: function () {
+      clearInterval(this.autoScrolling)
+      this.autoScrolling = undefined
     },
     addComment () {
       if (this.addSending) return
@@ -158,7 +174,6 @@ export default {
         titles.push([res[1], res[2], res[3]])
       }
       this.titles = titles
-      console.log(titles)
     },
     jumpToTitle (t_id) {
       let t = this.titles[t_id].join('')
@@ -221,8 +236,8 @@ export default {
 <style lang="scss" scoped>
 .art {
   position: relative;
-  margin-left: 30%;
-  margin-right: 30%;
+  margin: 0 30%;
+  padding-bottom: 2rem;
   border-right: 1px solid #eee;
 }
 .article {
@@ -262,6 +277,7 @@ export default {
       line-height: 1.25rem;
       text-align: left;
       background-color: #FaFaFF;
+      word-wrap: break-word;
       font-family: "Courier New";
       border-radius: .5rem;
     }
@@ -344,6 +360,9 @@ export default {
     span {
       margin-right: 1rem;
     }
+    &:last-child {
+      margin-bottom: 0;
+    }
   }
   #removeAddTo {
     cursor: pointer;
@@ -383,7 +402,7 @@ export default {
     border: 1px #4FB9F1 solid;
   }
 }
-#toTop {
+.scrollToTop {
   position: fixed;
   width: 2rem;
   height: 2rem;
@@ -398,19 +417,19 @@ export default {
   cursor: pointer;
   transition: .2s ease;
   &:hover {
-    box-shadow: 0px 2px 1px 2px #f8f8f8;
-    transform: translateY(-2px);
+    background-position: 50% 40%;
   }
+}
+.scrollToBottom {
+  transform: rotateZ(180deg);
 }
 @media (max-width: 750px) {
   .art {
-    margin: 0 0 4rem 0;
-    padding: 0;
+    margin: 0;
+    padding: 0 0 6rem 0;
+    border-right: none;
   }
   .comment .time {
-    display: none;
-  }
-  #toTop {
     display: none;
   }
   .art .add li textarea {
@@ -419,6 +438,9 @@ export default {
   .art .article .content img {
     max-width: 100%;
     height: auto;
+  }
+  .scrollToTop {
+    display: none;
   }
   .right {
     display: none;

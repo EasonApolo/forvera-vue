@@ -118,9 +118,19 @@ export default {
     setTag: function (tag) {
       if (this.locked) return
       this.lock()
-      this.tag = tag.id
+      // cancel
+      if (this.tag == tag.id) {
+        this.tag = undefined
+        for (let i in this.category) {
+          if (this.category[i].id == this.cat) {
+            this.page_count = Math.ceil(this.category[i].count / this.per_page)
+          }
+        }
+      } else {
+        this.tag = tag.id
+        this.page_count = Math.ceil(tag.count / this.per_page)
+      }
       this.page = 1
-      this.page_count = Math.ceil(tag.count / this.per_page)
     },
     unlock: function () {
       this.locked = false
@@ -138,7 +148,7 @@ export default {
   margin: 0 30%;
   padding-bottom: 3rem;
   width: 40%;
-  height: 100%;
+  min-height: 100vh;
   border-right: 1px solid #eee;
 }
 .right {
@@ -182,6 +192,7 @@ export default {
     margin: 0 0 3rem 0;
     padding-right: 0;
     width: 100%;
+    border-right: none;
   }
   .right {
     position: relative;

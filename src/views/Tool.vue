@@ -47,13 +47,12 @@ export default {
   position: relative;
   margin: 0 0 0 30%;
   width: 40%;
-  height: 100%;
+  min-height: 100vh;
+  border-right: 1px solid #eee;
   .wrapper {
     box-sizing: content-box;
-    border-right: 1px solid #eee;
     padding-bottom: 5rem;
     padding-top: 3rem;
-    height: 100%;
   }
   .content {
     border-top: 1px solid #eee;
@@ -148,6 +147,7 @@ export default {
     margin-left: 0;
     padding-right: 0;
     width: 100%;
+    border-right: none;
     .right {
       position: relative;
       display: block;

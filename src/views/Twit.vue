@@ -213,9 +213,10 @@ export default {
     },
     send () {
       if (this.content == '' || this.name == '') {
-        bus.$emit('pop', '还没有填姓名或内容哦')
+        bus.$emit('pop', '至少填个空格嗷')
         return
       }
+      bus.$emit('pop', '发送中...')
       this.intSwitch = 1
       let form = new FormData()
       form.append('author_name', this.name)
@@ -327,12 +328,12 @@ export default {
             display: inline-block;
             font-size: 16px;
             cursor: pointer;
-            z-index: 1;
             &:hover .list {
               display: flex;
             }
             .list {
               display: none;
+              position: relative;
               flex-wrap: wrap;
               padding: .5rem;
               width: 8rem;
@@ -340,6 +341,7 @@ export default {
               border: 1px solid #ddd;
               border-radius: .5rem;
               cursor: pointer;
+              z-index: 1;
               .addreact-item {
                 flex: 0 0 auto;
                 width: 2rem;

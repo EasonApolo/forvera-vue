@@ -51,8 +51,6 @@ export default {
 
 <style lang="scss">
 body {
-  height: 100%;
-  min-height: 100%;
   margin: 0;
   -webkit-overflow-scrolling: touch;
   -webkit-tap-highlight-color:rgba(0,0,0,0);
@@ -78,8 +76,7 @@ ul {
   margin: 0;
 }
 #app {
-  height: 100%;
-  min-height: 100%;
+  min-height: 100vh;
   text-align: center;
   color: #2c3e50;
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
@@ -172,36 +169,36 @@ ul {
         color: transparent;
       }
       .a-index, .a-board, .a-tool, .a-about {
-        background-size: 1.4325rem;
+        background-size: 1.75rem;
         background-position: 50%;
         background-repeat: no-repeat;
       }
       .a-index {
-        background-image: url(../public/index.png);
+        background-image: url(../public/home.svg);
       }
       .a-index.router-link-exact-active {
-        background-image: url(../public/index_active.png);
+        background-image: url(../public/home_active.svg);
       }
       .a-board {
-        background-size: 1.375rem;
-        background-image: url(../public/board.png);
+        background-size: 1.25rem 1.25rem;
+        background-image: url(../public/twit.svg);
       }
       .a-board.router-link-exact-active {
-        background-image: url(../public/board_active.png);
+        background-image: url(../public/twit_active.svg);
       }
       .a-tool {
-        background-size: 1.0625rem;
-        background-image: url(../public/tool.png);
+        background-size: 1.25rem 1.25rem;
+        background-image: url(../public/tool.svg);
       }
       .a-tool.router-link-exact-active {
-        background-image: url(../public/tool_active.png);
+        background-image: url(../public/tool_active.svg);
       }
       .a-about {
-        background-size: 1.125rem;
-        background-image: url(../public/about.png);
+        background-size: 1.25rem 1.25rem;
+        background-image: url(../public/about.svg);
       }
       .a-about.router-link-exact-active {
-        background-image: url(../public/about_active.png);
+        background-image: url(../public/about_active.svg);
       }
     }
   }

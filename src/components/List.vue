@@ -132,6 +132,7 @@ export default {
     font-size: 0.875rem;
     line-height: 1.375rem;
     color: #555;
+    word-wrap: break-word;
   }
 }
 @media (max-width: 750px) {
