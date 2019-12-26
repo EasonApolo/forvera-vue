@@ -20,18 +20,17 @@
       </div>
       <div class='rbox'>
         <div class="title">说明</div>
-        <div class="ritem"><b>特点</b><br>给目标词语加上()可以单独提取词语，多个词语自动用tab分隔，可以直接复制进Excel。</div>
-        <div class="ritem"><b>例子</b><br><i style='color:#aaa'>epoch 3500: acc 77.6%, loss 1.3</i><br>epoch\s(\d+).+([\d\.]+),.+([\d\.]+)<br>> 3500	77.6	1.353</div>
-        <div class="ritem flex-item">
-          <span><b>常用</b></span>
-          <span>\s空格</span>
-          <span>\d数字</span>
-          <span>\w字母</span>
-          <span>.任意字符</span>
-          <span>+一个或以上</span>
-          <span>*零个或以上</span>
-          <span>[]可替换</span>
-          <span>\n \t</span></div>
+        <div class="ritem plain"><b>特点</b><br>给目标词语加上()可以单独提取词语，多个词语自动用tab分隔，可以直接复制进Excel。</div>
+        <div class="ritem" @click='setExample'>
+          <b>例子</b>
+          <br><i style='color:#aaa;font-size:13px'>{{eg[0]}}</i>
+          <br>▸{{eg[1]}}
+          <br>◂3500	77.6	1.353
+        </div>
+        <div class="ritem flex-item plain">
+          <b>常用</b>
+          <span class='flex-ele' v-for='(e, i) in el' :key='i' @click='reg.reg+=e[0]'>{{e[0]}}<span v-if='e.length>1'>{{e[1]}}</span></span>
+        </div>
       </div>
     </div>
   </div>
@@ -53,6 +52,8 @@ export default {
         c: 0
       },
       reglist: [],
+      eg: ['epoch 3500: acc 77.6%, loss 1.353', '\\s(\\d+).+\\s([\\d\\.]+).+\\s([\\d\\.]+)'],
+      el: [['\\s', '空格'], ['\\d', '数字'], ['\\w', '字母'], ['.', '任意字符'], ['+', '一个或以上'], ['*', '零个或以上'], ['[]', '可选'], ['\\n'], ['\\t']]
     }
   },
   components: {
@@ -111,6 +112,13 @@ export default {
     save: function () {
       this.reglist.unshift(this.reg.reg)
       bus.$emit('pop', '已保存在saved regexp中')
+    },
+    setExample: function () {
+      if (this.reg.input == '' && this.reg.reg == '') {
+        this.reg.input = this.eg[0]
+        this.reg.reg = this.eg[1]
+        this.parse()
+      }
     }
   },
   watch: {
@@ -163,6 +171,28 @@ export default {
     flex-flow: wrap;
     span {
       flex: 1 1 auto;
+    }
+  }
+  .plain {
+    cursor: inherit !important;
+    &:hover {
+      background-color: #f6f6fc !important;
+    }
+  }
+  .flex-ele {
+    margin: 2px 8px 2px 0;
+    padding: 0 4px;
+    border-radius: 1rem;
+    background-color: #e8e8f0;
+    text-align: center;
+    font-size: 12px;
+    cursor: pointer;
+    transition: .2s ease;
+    &:hover {
+      background-color: #e0e0e4;
+    }
+    span {
+      margin-left: 2px;
     }
   }
 }
