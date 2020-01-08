@@ -92,7 +92,7 @@ export default {
     process () {
       let svgWidth = document.getElementById('chart').offsetWidth
       let startYear = 2016
-      let endYear = 2020
+      let endYear = (new Date()).getFullYear()+1
       let month = []
       for(let i = this.posts.length - 1; i >= 0; i--) {
         let date = this.posts[i].date.slice(0, 7).split('-')

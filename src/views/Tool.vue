@@ -7,7 +7,9 @@
         </div>
       </div>
     </div>
-    <div class="back" v-show="active!==undefined" @click="back()">返回</div>
+    <div class="back" v-show="active!==undefined" @click="back()">
+      <div class='back-icon'></div>返回
+    </div>
     <component v-if='active' v-bind:is="active"></component>
   </div>
 </template>
@@ -16,16 +18,18 @@
 import ToolRegex from '../components/ToolRegex'
 import ToolRecord from '../components/ToolRecord'
 import ToolChess from '../components/ToolChess'
+import ToolMofish from '../components/ToolMofish'
 export default {
   name: 'tool',
   data () {
     return {
       active: undefined,
-      tools: ['regex', 'record', 'chess'],
+      tools: ['regex', 'record', 'chess', 'mofish'],
       toolName: {
         regex: '正则提取',
-        record: 'Record Player',
-        chess: '自走棋'
+        record: '录音机',
+        chess: '自走棋',
+        mofish: '摸鱼',
       },
     }
   },
@@ -33,6 +37,7 @@ export default {
     'regex': ToolRegex,
     'record': ToolRecord,
     'chess': ToolChess,
+    'mofish': ToolMofish,
   },
   methods: {
     back () {
@@ -83,18 +88,31 @@ export default {
   }
   .back {
     position: absolute;
-    left: .5rem;
-    top: .5rem;
-    width: 4rem;
+    left: 0;
+    top: 0;
+    padding: .5rem 2rem;
+    width: calc(100% - 4rem);
     height: 2rem;
     line-height: 2rem;
-    border-radius: 1rem;
+    text-align: left;
     font-size: .875rem;
-    background-color: #f4f4ff;
     cursor: pointer;
     transition: background-color .2s ease-in-out;
     &:hover {
-      background-color: #eef;
+      background-color: #f6f6fc;
+    }
+    .back-icon {
+      position: absolute;
+      left: 1rem;
+      top: 1.125rem;
+      height: .75rem;
+      width: .75rem;
+      background-size: contain;
+      background-image: url(../../public/left.png);
+      transition: transform .2s ease-in-out;
+    }
+    &:hover .back-icon{
+      transform: translateX(-5px);
     }
   }
 
