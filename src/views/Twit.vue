@@ -14,13 +14,13 @@
             <div class='num'>{{item.child.length === 0 ? '' : item.child.length}}</div>
             </div>
           <div class='react'>
-            <div v-for='(val, key) in itemReact(item)' :key='key' class='added'>
-              {{map[key]}}{{val}}
-            </div>
-            <div class='addreact'>+
+            <div class='addreact'>＋
               <div class='list'>
                 <div class='addreact-item' v-for="(val, key) in map" :key="val" @click='react(item, key)'>{{val}}</div>
               </div>
+            </div>
+            <div v-for='(val, key) in itemReact(item)' :key='key' class='added'>
+              {{map[key]}}{{val}}
             </div>
           </div>
         </div>
@@ -294,13 +294,15 @@ export default {
       }
       .opmenu {
         margin-top: .5rem;
+        display: flex;
         height: 1.25rem;
         line-height: 1.25rem;
         color: #888;
         font-size: 15px;
         user-select: none;
         .comments {
-          display: inline-block;
+          flex: 0 0 auto;
+          width: 3rem;
           cursor: pointer;
           .icon {
             display: inline-block;
@@ -316,16 +318,17 @@ export default {
         }
         .react {
           position: relative;
-          display: inline-block;
+          display: flex;
+          flex: 1 1 auto;
           vertical-align: top;
-          margin-left: 2rem;
           .added {
-            display: inline-block;
-            margin-right: 1rem;
+            flex: 0 1 auto;
+            margin-right: .5rem;
+            text-align: center;
           }
           .addreact {
-            position: absolute;
-            display: inline-block;
+            flex: 0 0 auto;
+            width: 2rem;
             font-size: 16px;
             cursor: pointer;
             &:hover .list {
