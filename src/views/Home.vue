@@ -9,7 +9,7 @@
       </ul>
       <ul class="rbox tags">
         <div>标签</div>
-        <li v-for="t in tags" :key="t.id" @click="setTag(t)" :class="{active:(t.id===tag),disabled:locked}" v-show="t.description.includes(cat)">
+        <li v-for="t in tags" :key="t.id" @click="setTag(t)" :class="{active:(t.id===tag),disabled:locked}" v-show="t.description == cat">
           {{t.name}} ({{t.count}})
         </li>
       </ul>
@@ -35,6 +35,8 @@ export default {
       category: [],
       cat: 0,
       tags: [],
+      mappedCatIDs: [4, 5, 7],
+      originCatIDs: [7, 8, 9],
       tag: undefined,
       page: 1,
       page_count: 1,
@@ -63,15 +65,18 @@ export default {
         return res.json()
       })
       .then(json => {
-        for (let i = json.length - 1; i >= 0; i--) {
-          if (json[i].id <= 6) {
-            json.splice(i, 1)
-          }
-          else if (json[i].id == 7) {
-            this.setCat(json[i])
+        let activeCats = []
+        for (let i in this.mappedCatIDs) {
+          for (let j in json) {
+            if (json[j].id == this.mappedCatIDs[i]) {
+              activeCats.push(json[j])
+              if (i == 0) {
+                this.setCat(json[j])
+              }
+            }
           }
         }
-        this.category = json
+        this.category = activeCats
       })
     },
     fetchTag: function () {
@@ -80,11 +85,11 @@ export default {
         return res.json()
       })
       .then(json => {
-        setTimeout((json) => {
-          for (let i in json) {
-            json.description = json[i].description.split(',').map(n => parseInt(n))
-          }
-        })
+        for (let i in json) {
+          let originCatID = parseInt(json[i].description)
+          let mappedCatID = this.mappedCatIDs[this.originCatIDs.indexOf(originCatID)]
+          json[i].description = mappedCatID
+        }
         this.tags = json
       })
     },
@@ -95,7 +100,7 @@ export default {
       if (this.tag != undefined) {
         for (let i in this.tags) {
           if (this.tags[i].id == this.tag) {
-            if (!this.tags[i].description.includes(cat)) {
+            if (!this.tags[i].description == cat) {
               this.tag = undefined
             }
           }

@@ -121,7 +121,7 @@ export default {
   },
   methods: {
     fetchReact () {
-      fetch(window.domain + '/react.php')
+      fetch(window.domain + '/react/react.php')
       .then(res => {return res.json()})
       .then(json => {
         this.reactdata = json
@@ -144,7 +144,7 @@ export default {
       let form = new FormData()
       form.append('id', item.id)
       form.append('rid', key)
-      fetch(window.domain + '/react.php', {
+      fetch(window.domain + '/react/react.php', {
         method: 'POST',
         body: form
       })
