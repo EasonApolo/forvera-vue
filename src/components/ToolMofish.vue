@@ -11,7 +11,6 @@
         <div v-for="(s, index) in sites" :key="index" class="ritem" @click="fetchData(s[0], index)" :class="{activeindex:active===index}">
           <span>{{s[1]}}</span>
           <div class='up' v-if="index>0" @click.stop='setDefaultSites(index)'></div>
-          </div>
         </div>
       </div>
       <div class='rbox m-hidden'>
@@ -20,7 +19,7 @@
           数据接口来自：<br>
           https://github.com/tophubs/TopList<br>
           https://mo.fish/main/home/hot<br>
-          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -146,7 +145,7 @@ export default {
       flex-wrap: nowrap;
       overflow-x: auto !important;
       &::-webkit-scrollbar {
-        height: 0;
+        display: none;
       }
       .ritem {
         flex: 0 0 auto;

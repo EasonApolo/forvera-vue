@@ -12,13 +12,13 @@
           <div class='comments' @click='toParent=item.id;addOpen=true;'>
             <div class='icon' style='width:1.25rem'><svg viewBox="0 0 24 24"><path fill='#ccc' d='M14.046 2.242l-4.148-.01h-.002c-4.374 0-7.8 3.427-7.8 7.802 0 4.098 3.186 7.206 7.465 7.37v3.828c0 .108.044.286.12.403.142.225.384.347.632.347.138 0 .277-.038.402-.118.264-.168 6.473-4.14 8.088-5.506 1.902-1.61 3.04-3.97 3.043-6.312v-.017c-.006-4.367-3.43-7.787-7.8-7.788zm3.787 12.972c-1.134.96-4.862 3.405-6.772 4.643V16.67c0-.414-.335-.75-.75-.75h-.396c-3.66 0-6.318-2.476-6.318-5.886 0-3.534 2.768-6.302 6.3-6.302l4.147.01h.002c3.532 0 6.3 2.766 6.302 6.296-.003 1.91-.942 3.844-2.514 5.176z'></path></svg></div>
             <div class='num'>{{item.child.length === 0 ? '' : item.child.length}}</div>
+          </div>
+          <div class='addreact'>＋
+            <div class='list'>
+              <div class='addreact-item' v-for="(val, key) in map" :key="val" @click='react(item, key)'>{{val}}</div>
             </div>
+          </div>
           <div class='react'>
-            <div class='addreact'>＋
-              <div class='list'>
-                <div class='addreact-item' v-for="(val, key) in map" :key="val" @click='react(item, key)'>{{val}}</div>
-              </div>
-            </div>
             <div v-for='(val, key) in itemReact(item)' :key='key' class='added'>
               {{map[key]}}{{val}}
             </div>
@@ -38,10 +38,10 @@
     </transition>
     <transition name="slide-large" mode="out-in">
       <div class="add" v-show="addOpen||large_device">
-        <div class="close" @click="addOpen=false"></div>
-        <div class="input-name"><input type='text' v-model='name' placeholder="head"></div>
-        <div class="input-content"><textarea type='text' v-model='content' placeholder="body" rows="10"></textarea></div>
+        <div class="input-name"><input type='text' v-model='name' placeholder="君の名は"></div>
+        <div class="input-content"><textarea type='text' v-model='content' placeholder="言叶" rows="10"></textarea></div>
         <div class='replyto' v-show="toParent != 0" @click='toParent=0'>回复给<i>{{toParentName}}</i><br>（点击取消）</div>
+        <button class="close" v-show="addOpen" @click="addOpen=false"></button>
         <button @click="send"></button>
       </div>
     </transition>
@@ -59,8 +59,8 @@ export default {
       intSwitch: 0,
       data: [],
       max_page: 101,
-      name: '',
-      content: '',
+      name: localStorage.name || '',
+      content: localStorage.content || '',
       addOpen: false,
       large_device: true,
       reactdata: [],
@@ -91,6 +91,7 @@ export default {
       this.setDevice()
     })
     window.addEventListener('scroll', this.scrollBottom)
+    setInterval(this.autoSave, 5000)
   },
   computed: {
     toParentName: function () {
@@ -120,6 +121,11 @@ export default {
     }
   },
   methods: {
+    autoSave () {
+      this.name.length > 0 && (localStorage.autosavename = this.name)
+      this.content.length > 0 && (localStorage.autosavecontent = this.content)
+      
+    },
     fetchReact () {
       fetch(window.domain + '/react/react.php')
       .then(res => {return res.json()})
@@ -246,7 +252,7 @@ export default {
   padding-right: 30%;
   width: 40%;
   .main {
-    padding: 2rem 0rem;
+    padding: 3rem 0rem;
     border-right: 1px solid #eee;
     text-align: left;
     .item {
@@ -316,43 +322,50 @@ export default {
             vertical-align: middle;
           }
         }
+        .addreact {
+          position: relative;
+          flex: 0 0 auto;
+          width: 2rem;
+          font-size: 16px;
+          cursor: pointer;
+          &:hover .list {
+            display: flex;
+          }
+          .list {
+            position: absolute;
+            display: none;
+            flex-wrap: wrap;
+            padding: .5rem;
+            width: 8rem;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: .5rem;
+            cursor: pointer;
+            z-index: 1;
+            .addreact-item {
+              flex: 0 0 auto;
+              width: 2rem;
+              height: 2rem;
+              line-height: 2rem;
+              text-align: center;
+            }
+          }
+        }
         .react {
           position: relative;
           display: flex;
           flex: 1 1 auto;
           vertical-align: top;
+          flex-wrap: nowrap;
+          overflow-x: scroll;
+          &::-webkit-scrollbar {
+            display: none;
+          }
           .added {
             flex: 0 1 auto;
-            margin-right: .5rem;
+            margin-right: .75rem;
             text-align: center;
-          }
-          .addreact {
-            flex: 0 0 auto;
-            width: 2rem;
-            font-size: 16px;
-            cursor: pointer;
-            &:hover .list {
-              display: flex;
-            }
-            .list {
-              display: none;
-              position: relative;
-              flex-wrap: wrap;
-              padding: .5rem;
-              width: 8rem;
-              background-color: white;
-              border: 1px solid #ddd;
-              border-radius: .5rem;
-              cursor: pointer;
-              z-index: 1;
-              .addreact-item {
-                flex: 0 0 auto;
-                width: 2rem;
-                height: 2rem;
-                line-height: 2rem;
-                text-align: center;
-              }
-            }
+            white-space: nowrap;
           }
         }
       }
@@ -366,17 +379,17 @@ export default {
     position: fixed;
     top: 0;
     left: 70%;
-    padding: 2rem 2rem;
+    padding: 3rem 2rem;
     max-width: 15rem;
     width: calc(100% - 1.5rem);
     button {
-      width: 3.5rem;
+      width: 100%;
       height: 2rem;
       border: none;
       outline: none;
       border-radius: 1rem;
       background-color: #ddf;
-      background-image: url('../../public/send.png');
+      background-image: url('../../public/send.svg');
       background-size: 1.125rem 1.125rem;
       background-position: 50% 50%;
       background-repeat: no-repeat;
@@ -390,14 +403,14 @@ export default {
       margin-bottom: 1rem;
       padding: .5rem .75rem;
       width: calc(100% - 1.5rem);
-      border: 1px solid #eee;
       border-radius: 1rem;
       font-size: .8125rem;
+      background-color: #eee;
       font-family: Verdana, Helvetica, Arial, sans-serif;
       line-height: 1.25rem;
       transition: all .2s ease;
-      &:hover, &:focus {
-        border-color: #88f;
+      &:focus {
+        background-color: #dcdcdc;
       }
     }
     .replyto {
@@ -425,7 +438,7 @@ export default {
       height: 3rem;
       border-radius: 1.5rem;
       background-color: #ccf;
-      background-image: url(../../public/send.png);
+      background-image: url(../../public/send.svg);
       background-position: 45% 50%;
       background-size: 50%;
       background-repeat: no-repeat;
@@ -433,55 +446,38 @@ export default {
     }
     .add{
       position: fixed;
-      top: 0;
+      top: auto;
+      bottom: 0;
       left: 0;
-      padding: 0;
+      right: 0;
+      padding: 0 2rem;
+      width: calc(100% - 4rem);
       max-width: 100%;
-      width: 100%;
-      height: 100%;
-      background-color: #fff;
+      height: 33rem;
+      border-radius: 2rem 2rem 0 0;
+      box-shadow: 0 -10px 10px 1px #eee;
+      background-color: #fafafa;
       z-index: 1;
       input, textarea {
-        margin: 0 4rem;
+        margin-top: 1rem;
+        width: calc(100% - 2rem);
         padding: 1rem;
-        width: calc(100% - 10rem);
-        max-width: 100%;
         font-size: 1rem;
-        border: none;
-        border-radius: 0;
+        border-radius: 1rem;
       }
       .input-name {
-        margin-top: 6rem;
-        text-align: left;
-        input {
-          padding: 1rem;
-          width: 10rem;
-        }
-      }
-      textarea {
-        border-top: 1px solid #ccf;
-      }
-      button {
-        position: absolute;
-        top: calc(3.5rem + 1px);
-        right: 2rem;
+        margin-top: 1rem;
       }
       .close {
-        position: absolute;
-        left: 2rem;
-        top: calc(3.5rem + 1px);
-        width: 2rem;
-        height: 2rem;
-        background-image: url(../../public/close.png);
-        background-size: 60% 60%;
+        background-image: url(../../public/close.svg);
+        background-size: 1rem;
         background-position: 50% 50%;
         background-repeat: no-repeat;
-        cursor: pointer;
+        background-color: pink;
       }
-      .replyto {
-        margin-bottom: 1rem;
-        font-size: 14px;
-        cursor: pointer;
+      button {
+        margin: 0 1rem;
+        width: 4rem;
       }
     }
   }

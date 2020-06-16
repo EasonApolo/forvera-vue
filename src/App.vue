@@ -2,10 +2,10 @@
   <div id="app">
     <div id="nav">
       <ul id="nav-content">
-        <router-link class="a-index" to="/"     >首页</router-link>
-        <router-link class="a-board" to="/twit" >留言</router-link>
-        <router-link class="a-tool"  to="/tool" >工具</router-link>
-        <router-link class="a-about" to="/about">关于</router-link>
+        <router-link class="a-index" to="/"     >{{titleHome}}</router-link>
+        <router-link class="a-board" to="/twit" >{{titleTwit}}</router-link>
+        <router-link class="a-tool"  to="/tool" >{{titleTool}}</router-link>
+        <router-link class="a-about" to="/about">{{titleAbout}}</router-link>
       </ul>
     </div>
       <keep-alive include="home,twit,tool,about">
@@ -27,6 +27,24 @@ export default {
   },
   components: {
     Pop
+  },
+  computed: {
+    titleHome () {
+      return document.body.clientWidth < 750 ? 'Y' : '文章'
+    },
+    titleTwit () {
+      return document.body.clientWidth < 750 ? 'Y' : '留言'
+    },
+    titleTool () {
+      return document.body.clientWidth < 750 ? 'D' : '工具'
+    },
+    titleAbout () {
+      return document.body.clientWidth < 750 ? 'T' : '关于'
+    },
+    
+    
+    
+    
   },
   watch: {
     '$route' (to, from) {
@@ -50,6 +68,9 @@ export default {
 </script>
 
 <style lang="scss">
+html {
+  overflow-y: scroll;
+}
 body {
   margin: 0;
   -webkit-overflow-scrolling: touch;
@@ -126,7 +147,7 @@ ul {
     padding: 0 0;
     width: calc(15rem - 2rem);
     height: 100%;
-    border-right: 1px solid #EEE;
+    border-right: 1px solid #eee;
     z-index: 1;
   }
   #nav-content {
@@ -151,6 +172,7 @@ ul {
 @media (max-width: 750px) {
   #nav {
     position: fixed;
+    padding-bottom: 1rem;
     bottom: 0;
     width: 100%;
     height: 3rem;
@@ -166,39 +188,10 @@ ul {
         display: inline-block;
         transition: .3s;
         border-radius: 1rem;
-        color: transparent;
+        font-family: 'Courier';
       }
-      .a-index, .a-board, .a-tool, .a-about {
-        background-size: 1.75rem;
-        background-position: 50%;
-        background-repeat: no-repeat;
-      }
-      .a-index {
-        background-image: url(../public/home.svg);
-      }
-      .a-index.router-link-exact-active {
-        background-image: url(../public/home_active.svg);
-      }
-      .a-board {
-        background-size: 1.25rem 1.25rem;
-        background-image: url(../public/twit.svg);
-      }
-      .a-board.router-link-exact-active {
-        background-image: url(../public/twit_active.svg);
-      }
-      .a-tool {
-        background-size: 1.25rem 1.25rem;
-        background-image: url(../public/tool.svg);
-      }
-      .a-tool.router-link-exact-active {
-        background-image: url(../public/tool_active.svg);
-      }
-      .a-about {
-        background-size: 1.25rem 1.25rem;
-        background-image: url(../public/about.svg);
-      }
-      .a-about.router-link-exact-active {
-        background-image: url(../public/about_active.svg);
+      a.router-link-exact-active {
+        font-weight: bold;
       }
     }
   }

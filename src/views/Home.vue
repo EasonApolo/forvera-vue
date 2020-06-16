@@ -19,7 +19,7 @@
     </div>
     <div class="nav">
       <span @click="setPage(page-1)" class="pre" :class="{disable:isPage(page-1)}">上一页</span>
-      <span v-for="n in page_count" :key="n" :class="{active:n==page}" @click="setPage(n)" class="nav-digit">{{ n }}</span>
+      <span v-for="n in shownPages" :key="n" :class="{active:n==page}" @click="setPage(n)" class="nav-digit">{{ n }}</span>
       <span @click="setPage(page+1)" class="post" :class="{disable:isPage(page+1)}">下一页</span>
     </div>
   </div>
@@ -33,6 +33,7 @@ export default {
   data () {
     return {
       category: [],
+      total_count: 0,
       cat: 0,
       tags: [],
       mappedCatIDs: [4, 5, 7],
@@ -56,6 +57,13 @@ export default {
       return function (page_id) {
         return page_id < 1 || page_id > this.page_count
       }
+    },
+    shownPages: function () {
+      let shown = []
+      for (let i = 1; i <= this.page_count; i++) {
+        if (Math.abs(i-this.page)<=3) shown.push(i)
+      }
+      return shown
     }
   },
   methods: {
@@ -70,13 +78,15 @@ export default {
           for (let j in json) {
             if (json[j].id == this.mappedCatIDs[i]) {
               activeCats.push(json[j])
-              if (i == 0) {
-                this.setCat(json[j])
-              }
+              // if (i == 0) {
+              //   this.setCat(json[j])
+              // }
             }
           }
         }
         this.category = activeCats
+        this.total_count = this.category.reduce((acc,cur)=>acc+cur.count,0)
+        this.setCat({ id: -1 })
       })
     },
     fetchTag: function () {
@@ -96,18 +106,12 @@ export default {
     setCat: function (cat) {
       if (this.locked) return
       this.lock()
+      if (cat.id == this.cat) cat = { id: -1 }
       this.cat = cat.id
-      if (this.tag != undefined) {
-        for (let i in this.tags) {
-          if (this.tags[i].id == this.tag) {
-            if (!this.tags[i].description == cat) {
-              this.tag = undefined
-            }
-          }
-        }
-      }
+      this.tag = undefined
       this.page = 1
-      this.page_count = Math.ceil(cat.count / this.per_page)
+      let cat_count = cat.id == -1 ? this.total_count : cat.count
+      this.page_count = Math.ceil(cat_count / this.per_page)
       this.lock()
     },
     setPage: function (page_id) {
@@ -115,6 +119,7 @@ export default {
       this.lock()
       if (page_id < 1 || page_id > this.page_count) {
         bus.$emit('pop', '没有更多啦')
+        this.unlock()
         return
       }
       this.page = page_id
@@ -150,7 +155,7 @@ export default {
 <style scoped lang="scss">
 .home {
   position: relative;
-  margin: 0 30%;
+  margin: 0 auto;
   padding-bottom: 3rem;
   width: 40%;
   min-height: 100vh;
@@ -173,9 +178,6 @@ export default {
       user-select: none;
       cursor: pointer;
       transition: color .2s ease-in-out;
-      &:hover {
-        background-color: #eeeeff;
-      }
     }
     div {
       padding: .5rem 0;
@@ -185,60 +187,11 @@ export default {
       color: #888;
     }
     .active {
-      background-color: #f1f1ff
+      background-color: #f1f1ff;
     }
   }
   .tags {
     width: 11rem;
-  }
-}
-@media (max-width: 750px) {
-  .home {
-    margin: 0 0 3rem 0;
-    padding-right: 0;
-    width: 100%;
-    border-right: none;
-  }
-  .right {
-    position: relative;
-    left: 0;
-    right: 0;
-    padding: 0;
-    width: 100%;
-    .rbox {
-      display: flex;
-      width: 100%;
-      div, li {
-        display: inline-block;
-        flex: 0 0 auto;
-        margin: 0;
-        padding: 0;
-        height: 2rem;
-        line-height: 2rem;
-        vertical-align: top;
-        text-align: center;
-        font-size: .875rem;
-      }
-      li {
-        width: 25%;
-        border-radius: 0;
-        border-bottom: 3px solid white;
-        &:hover {
-          background-color: white;
-        }
-      }
-      div {
-        position: relative;
-        flex: 1 1 auto;
-      }
-    }
-    .tags {
-      display: none;
-    }
-  }
-  .active {
-    border-bottom: 3px solid #f1f1ff !important;
-    background-color: white !important;
   }
 }
 .nav {
@@ -275,9 +228,6 @@ export default {
       background-image: url(../../public/left.png);
       background-size: contain;
     }
-    &:hover {
-      transform: translateX(-.5rem);
-    }
   }
   .post {
     float: right;
@@ -291,8 +241,97 @@ export default {
       background-image: url(../../public/right.png);
       background-size: contain;
     }
-    &:hover {
-      transform: translateX(.5rem);
+  }
+}
+@media (min-width: 750px) {
+  .nav .pre:hover {
+    transform: translateX(-.5rem);
+  }
+  .nav .post:hover {
+    transform: translateX(.5rem);
+  }
+  .right .rbox li:hover {
+    background-color: #eeeeff;
+  }
+}
+@media (max-width: 750px) {
+  .home {
+    margin: 0 0 8rem 0;
+    padding-right: 0;
+    width: 100%;
+    border-right: none;
+  }
+  .right {
+    position: fixed;
+    display: flex;
+    flex-direction: column-reverse;
+    left: 0;
+    right: 0;
+    bottom: calc(4rem + 2rem);
+    padding: 0;
+    background-color: #fff;
+    border-top: 1px solid #eee;
+    line-height: 2.5rem;
+    z-index: 1;
+    .rbox {
+      width: 100%;
+      overflow-x: scroll;
+      &::-webkit-scrollbar {
+        display: none;
+      }
+      div, li {
+        display: inline-block;
+        margin: 0;
+        padding: 0;
+        vertical-align: top;
+        text-align: center;
+        font-size: .875rem;
+      }
+      div {
+        width: 5rem;
+        color: transparent;
+        background-image: url(../../public/category.svg);
+        background-size: 1.5rem;
+        background-repeat: no-repeat;
+        background-position: 50% 50%;
+      }
+      li {
+        $h: 1.8rem;
+        margin: (2.5rem - $h)/2 .25rem;
+        padding: 0 .625rem;
+        height: $h;
+        line-height: $h;
+        border-radius: 1rem;
+        color: #555;
+        background-color: #ddd;
+        white-space: nowrap;
+        &.active {
+          color: white;
+          background-color: #5C5FEA;
+        }
+      }
+      div {
+        position: relative;
+        flex: 1 1 auto;
+      }
+    }
+    .tags {
+      div { display: none; }
+      display: flex;
+      flex-wrap: nowrap;
+    }
+  }
+  .nav {
+    position: fixed;
+    margin: 0;
+    padding: 0 2rem;
+    left: 0;
+    right: 0;
+    bottom: calc(4rem + 1px);
+    background-color: white;
+    .active {
+      border-bottom: 3px solid #f1f1ff !important;
+      background-color: white !important;
     }
   }
 }

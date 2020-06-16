@@ -1,6 +1,6 @@
 <template>
   <div class="art">
-    <div class="article" v-if="artData.title">
+    <div class="article" v-if="artData.title" @click='rightToggle=false'>
       <div class="title">{{artData.title.rendered}}</div>
       <div class="time">{{slicedDate(artData.date)}}</div>
       <div class="content" v-html="artData.content.rendered"></div>
@@ -17,7 +17,7 @@
       </div>
     </div>
     <Loading :intSwitch=switch2></Loading>
-    <ul class="add">
+    <ul class="add" @click='rightToggle=false'>
       <li>> 添加评论<span v-show="commentToIndex !== -1" class="addTo">
           对  <i> {{commentToName}} </i> 
           <span id="removeAddTo" @click="commentToIndex = -1">取消</span></span>
@@ -27,10 +27,10 @@
       <li><input type="submit" value="提交" @click="addComment" :class="{disabled:addSending}"></li>
     </ul>
     <div class="scrollToTop" :class="{scrollToBottom:toBottom}" @click="scrollToTop"></div>
-    <div class='right'>
+    <div class='right' :class='{mini:!miniRight}' @click='rightToggle=!rightToggle'>
       <div class='rbox' v-if="titles.length > 0">
         <div class='title'>目录</div>
-        <div class='item' v-for='(t, i) in titles' :key='i' :class='{secondTitle:t[1]!=undefined}' @click='jumpToTitle(i)'>
+        <div class='item' v-for='(t, i) in titles' :key='i' :class='{secondTitle:t[1]!=undefined}' @click='jumpToTitle($event, i)'>
           <span v-if='t[1]==undefined'>{{t[0]}}</span>
           {{t[2]}}
         </div>
@@ -64,6 +64,8 @@ export default {
       addName: '',
       addContent: '',
       addSending: false,
+      // right menu
+      rightToggle: false,
     }
   },
   components: {
@@ -88,6 +90,9 @@ export default {
     },
     toBottom: function () {
       return this.scrollY <= 800
+    },
+    miniRight: function () {
+      return document.body.clientWidth > 750 || this.rightToggle
     }
   },
   created () {
@@ -111,6 +116,10 @@ export default {
       } else {
         src = this.scrollY
         tgt = 0
+      }
+      if (document.body.clientWidth < 750) {
+        document.documentElement.scrollTop = tgt
+        return
       }
       let i = 0
       // init last as src
@@ -175,7 +184,8 @@ export default {
       }
       this.titles = titles
     },
-    jumpToTitle (t_id) {
+    jumpToTitle (e, t_id) {
+      e.stopPropagation()
       let t = this.titles[t_id].join('')
       let p_nodes = document.getElementsByTagName('p')
       for (let i = 0; i < p_nodes.length; i++) {
@@ -440,10 +450,29 @@ export default {
     height: auto;
   }
   .scrollToTop {
-    display: none;
+    left: 1rem;
+    bottom: 5rem;
+    width: 2.5rem;
+    height: 2.5rem;
   }
   .right {
-    display: none;
+    position: fixed;
+    top: auto;
+    left: 1rem;
+    bottom: 8rem;
+  }
+  .mini {
+    width: 2.5rem;
+    height: 2.5rem;
+    background-color: #F6F6FC;
+    background-image: url(../../public/menu.svg);
+    background-size: 1rem;
+    background-repeat: no-repeat;
+    background-position: 50% 50%;
+    border-radius: 1.5rem;
+    & div {
+      display: none;
+    }
   }
 }
 </style>

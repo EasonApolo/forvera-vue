@@ -155,8 +155,9 @@ export default {
 <style scoped lang="scss">
 .about {
   position: relative;
-  margin: 0 30%;
-  padding: 2rem 0;
+  margin: 0 auto;
+  width: 40%;
+  padding-top: 3rem;
   min-height: 100%;
   box-sizing: content-box;
   border-right: 1px solid #eee;

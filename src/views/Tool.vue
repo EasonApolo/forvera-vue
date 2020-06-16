@@ -50,7 +50,7 @@ export default {
 <style lang="scss">
 .tool {
   position: relative;
-  margin: 0 0 0 30%;
+  margin: 0 auto;
   width: 40%;
   min-height: 100vh;
   border-right: 1px solid #eee;

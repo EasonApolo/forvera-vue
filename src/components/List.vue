@@ -28,7 +28,8 @@ export default {
   components: {
     Loading
   },
-  created () {
+  mounted () {
+    // this.fetchData()
   },
   computed: {
     slicedContent: function () {
@@ -56,8 +57,7 @@ export default {
     },
     fetchData: function () {
       this.intSwitch = 1
-      let query = window.ip + 'posts' + '?categories=' + this.cat + '&page=' + this.page + '&per_page=' + this.per_page
-      if (this.tag != undefined) query += '&tags=' + this.tag
+      let query = `${window.ip}posts?page=${this.page}&per_page=${this.per_page}${this.cat==-1?'':'&categories='+this.cat}${this.tag==undefined?'':'&tags='+this.tag}`
       fetch(query)
       .then(res => {
         return res.json()
@@ -82,8 +82,8 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped lang="scss">
 .list {
-  padding-top: 2rem;
   position: relative;
+  padding-top: 3rem;
 }
 .list-complete-move {
   transition: all .1s;
@@ -107,7 +107,7 @@ export default {
   width: calc(100% - 4rem);
   left: 0;
   padding: 1rem 2rem;
-  border-top: 1px solid #eee;
+  border-bottom: 1px solid #eee;
   text-align: left;
   transition: all .3s;
   cursor: pointer;
@@ -135,6 +135,13 @@ export default {
     word-wrap: break-word;
   }
 }
+.list > .item {
+  border-top: 1px solid #eee;
+}
+.list > .item ~ .item {
+  border-top: none;
+}
+
 @media (max-width: 750px) {
   .list {
     padding-top: 0;
