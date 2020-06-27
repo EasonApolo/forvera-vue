@@ -121,7 +121,7 @@ export default {
       }).then(json => {
         let todos = []
         for (let i in json) {
-          let todo = json[i].body.split('\r\n').map(v => v.split(' '))
+          let todo = json[i].body.split('\n').map(v => v.split(' '))
           todos.push(todo)
         }
         this.todos = todos

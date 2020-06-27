@@ -2,14 +2,14 @@
   <div class="twit" id='twit'>
     <Loading :intSwitch=intSwitch></Loading>
     <div class="main">
-      <div class="item" v-for="(item, index) in data" :key="index">
+      <div class="item" v-for="(item, index) in data" :key="index" :class='template(item)'>
         <div class='meta'>
           <div class="name">{{item.author_name}}</div>
           <div class="date">{{slicedDate(item.date)}}</div>
         </div>
         <div class="content" v-html="item.content.rendered" @click="clickbub($event)"></div>
         <div class="opmenu">
-          <div class='comments' @click='toParent=item.id;addOpen=true;'>
+          <div class='comments' @click='setReplyTo(item)'>
             <div class='icon' style='width:1.25rem'><svg viewBox="0 0 24 24"><path fill='#ccc' d='M14.046 2.242l-4.148-.01h-.002c-4.374 0-7.8 3.427-7.8 7.802 0 4.098 3.186 7.206 7.465 7.37v3.828c0 .108.044.286.12.403.142.225.384.347.632.347.138 0 .277-.038.402-.118.264-.168 6.473-4.14 8.088-5.506 1.902-1.61 3.04-3.97 3.043-6.312v-.017c-.006-4.367-3.43-7.787-7.8-7.788zm3.787 12.972c-1.134.96-4.862 3.405-6.772 4.643V16.67c0-.414-.335-.75-.75-.75h-.396c-3.66 0-6.318-2.476-6.318-5.886 0-3.534 2.768-6.302 6.3-6.302l4.147.01h.002c3.532 0 6.3 2.766 6.302 6.296-.003 1.91-.942 3.844-2.514 5.176z'></path></svg></div>
             <div class='num'>{{item.child.length === 0 ? '' : item.child.length}}</div>
           </div>
@@ -43,6 +43,8 @@
         <div class='replyto' v-show="toParent != 0" @click='toParent=0'>回复给<i>{{toParentName}}</i><br>（点击取消）</div>
         <button class="close" v-show="addOpen" @click="addOpen=false"></button>
         <button @click="send"></button>
+        <div style='text-align:left;margin:.75rem 0 .2rem 0'>preset titles:</div>
+        <div class='templates'><div v-for='(t, index) in templates' :key='index' @click='name=t'>{{t}}</div></div>
       </div>
     </transition>
   </div>
@@ -78,7 +80,8 @@ export default {
         'dg': '🐶',
         'tt': '🍭',
         'qq': '😘'
-      }
+      },
+      templates: ['#Changing', '#日常', '#今日不平常', '#？', '#朝花夕拾', '#feel low']
     }
   },
   components: {
@@ -94,6 +97,18 @@ export default {
     setInterval(this.autoSave, 5000)
   },
   computed: {
+    template: function () {
+      return function (item) {
+        switch (item.author_name) {
+          case '#Changing': return {'changing': true}; break;
+          case '#日常': return {'nichijou': true}; break;
+          case '#今日不平常': return {'special': true}; break;
+          case '#？': return {'what': true}; break;
+          case '#朝花夕拾': return {'recorder': true}; break;
+          case '#feel low': return {'feellow': true}; break;
+        }
+      }
+    },
     toParentName: function () {
       let item = this.data.find(v => v.id === this.toParent)
       return item === undefined ? '' : item.author_name
@@ -173,6 +188,12 @@ export default {
         } else {
           e.target.style.maxWidth = '100%'
         }
+      }
+    },
+    setReplyTo (item) {
+      this.toParent = item.id
+      if (!this.large_device) {
+        this.addOpen = true
       }
     },
     setDevice () {
@@ -258,6 +279,7 @@ export default {
     .item {
       padding: 1rem 2rem;
       border-top: 1px solid #eee;
+      background-repeat: no-repeat;
       &:hover {
         background-color: #fafafa;
       }
@@ -328,6 +350,7 @@ export default {
           width: 2rem;
           font-size: 16px;
           cursor: pointer;
+          text-align: center;
           &:hover .list {
             display: flex;
           }
@@ -355,6 +378,7 @@ export default {
           position: relative;
           display: flex;
           flex: 1 1 auto;
+          height: 1.5rem;
           vertical-align: top;
           flex-wrap: nowrap;
           overflow-x: scroll;
@@ -369,6 +393,36 @@ export default {
           }
         }
       }
+    }
+    .changing {
+      background-image: url(../../public/changing.svg);
+      background-size: 5rem;
+      background-position: 95% .5rem;
+    }
+    .nichijou {
+      background-image: url(../../public/nichijou.svg);
+      background-size: 4rem;
+      background-position: 95% 2rem;
+    }
+    .special {
+      background-image: url(../../public/special.svg);
+      background-size: 3rem;
+      background-position: 95% 4rem;
+    }
+    .what {
+      background-image: url(../../public/what.svg);
+      background-size: 5rem;
+      background-position: 95% 2rem;
+    }
+    .recorder {
+      background-image: url(../../public/recorder.svg);
+      background-size: 3rem;
+      background-position: 95% 1rem;
+    }
+    .feellow {
+      background-image: url(../../public/feellow.svg);
+      background-size: 5rem;
+      background-position: 95% 0rem;
     }
     .item-child {
       margin-top: 1rem;
@@ -422,6 +476,24 @@ export default {
         color: #aaa;
       }
     }
+    .templates {
+      display: flex;
+      flex-wrap: wrap;
+      font-size: .875rem;
+      line-height: 2.5rem;
+      span {
+        line-height: 2.5rem;
+      }
+      div {
+        flex: 0 0 auto;
+        margin: .25rem .25rem 0 0;
+        padding: 0 .5rem;
+        line-height: 1.5rem;
+        background-color: #DEE1E6;
+        border-radius: 1rem;
+        cursor: pointer;
+      }
+    }
   }
 }
 @media (max-width: 750px) {
@@ -453,7 +525,7 @@ export default {
       padding: 0 2rem;
       width: calc(100% - 4rem);
       max-width: 100%;
-      height: 33rem;
+      height: 35rem;
       border-radius: 2rem 2rem 0 0;
       box-shadow: 0 -10px 10px 1px #eee;
       background-color: #fafafa;
@@ -464,6 +536,9 @@ export default {
         padding: 1rem;
         font-size: 1rem;
         border-radius: 1rem;
+      }
+      textarea {
+        margin-top: 0;
       }
       .input-name {
         margin-top: 1rem;
@@ -477,7 +552,7 @@ export default {
       }
       button {
         margin: 0 1rem;
-        width: 4rem;
+        width: 5rem;
       }
     }
   }
