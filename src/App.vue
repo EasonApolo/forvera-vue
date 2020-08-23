@@ -1,5 +1,9 @@
 <template>
   <div id="app">
+    <keep-alive include="home,twit,tool,about">
+      <router-view/>
+    </keep-alive>
+    <pop></pop>
     <div id="nav">
       <ul id="nav-content">
         <router-link class="a-index" to="/"     >{{titleHome}}</router-link>
@@ -8,12 +12,6 @@
         <router-link class="a-about" to="/about">{{titleAbout}}</router-link>
       </ul>
     </div>
-      <keep-alive include="home,twit,tool,about">
-        <router-view/>
-      </keep-alive>
-    <!-- <transition :name="transitionName" mode="out-in">
-    </transition> -->
-    <pop></pop>
   </div>
 </template>
 
@@ -41,10 +39,6 @@ export default {
     titleAbout () {
       return document.body.clientWidth < 750 ? 'T' : '关于'
     },
-    
-    
-    
-    
   },
   watch: {
     '$route' (to, from) {
@@ -97,7 +91,10 @@ ul {
   margin: 0;
 }
 #app {
-  min-height: 100vh;
+  position: relative;
+  margin: 0 auto;
+  max-width: 1000px;
+  height: 100%;
   text-align: center;
   color: #2c3e50;
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
@@ -121,39 +118,20 @@ ul {
     outline-offset: -2px;
     border: 2px solid #fff;
 }
-.slide-left-enter-active, .slide-left-leave-active, .slide-right-enter-active, .slide-right-leave-active, .slide-up-enter-active, .slide-up-leave-active, .slide-down-enter-active, .slide-down-leave-active {
-  transition: all .2s ease;
-}
-.slide-left-enter, .slide-right-leave-to {
-  transform: translateX(10%);
-  opacity: 0;
-}
-.slide-left-leave-to, .slide-right-enter {
-  transform: translateX(-10%);
-  opacity: 0;
-}
-.slide-up-enter, .slide-down-leave-to {
-  transform: translateY(30%);
-  opacity: 0;
-}
-.slide-up-leave-to, .slide-down-enter {
-  transform: translateY(-30%);
-  opacity: 0;
-}
 @media (min-width: 750px) {
   #nav {
-    position: fixed;
-    left: calc(30% - 13rem);
-    padding: 0 0;
-    width: calc(15rem - 2rem);
-    height: 100%;
+    position: absolute;
+    padding: 3rem 2rem 0 0;
+    top: 0;
+    left: 0;
+    height: calc(100% - 3rem);
     border-right: 1px solid #eee;
     z-index: 1;
   }
   #nav-content {
-    margin-top: 3rem;
+    width: 9rem;
     a {
-      margin: 0 2rem 1rem 2rem;
+      margin-bottom: 1rem;
       display: block;
       padding: 0.5rem 0;
       border-radius: 3rem;
@@ -170,10 +148,13 @@ ul {
   }
 }
 @media (max-width: 750px) {
+  #app {
+    display: flex;
+    flex-direction: column;
+  }
   #nav {
-    position: fixed;
+    position: relative;
     padding-bottom: 1rem;
-    bottom: 0;
     width: 100%;
     height: 3rem;
     background-color: #fff;

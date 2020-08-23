@@ -1,54 +1,67 @@
 <template>
-  <div class="about">
-    <div class='item item-left'>
-      <div class='head'>哟，艾博，拉面一狗贼！</div>
-    </div>
-    <div class='item item-left'>
-      <div class='head'>最近更新</div>
-      <Loading :intSwitch=switcher.commit></Loading>
-      <div class='li' v-for="([v, ls], i) in commits" :key='i'>
-        <div class='v'>{{v}}</div>
-        <div class='l'><div v-for="(l, j) in ls" :key="j">{{l}}</div></div>
-      </div>
-    </div>
-    <div class='item item-left'>
-      <div class='head'>Todo List</div>
-      <Loading :intSwitch=switcher.todo></Loading>
-      <div v-for="(li, i) in todos" :key='i'>
-        <div class='li' v-for="([p, c], j) in li" :key='j'>
-          <div class='v'>{{p}}</div><div class='l'>{{c}}</div>
-        </div>
-      </div>
-    </div>
-    <div class='item item-left'>
-      <div class="head">统计</div>
-      <div id="chart" class="block">
-        <Loading :intSwitch=switcher.chart></Loading>
-        <svg version="1.1" xmlns="http://www.w3.org/2000/svg">  
-          <defs>
-            <linearGradient id="orange_red" x1="0%" y1="100%" x2="0%" y2="0%">
-              <stop offset="0%" style="stop-color:rgb(225, 225, 255);
-              stop-opacity:1"/>
-              <stop offset="100%" style="stop-color:rgb(100,100,255);
-              stop-opacity:1"/>
-            </linearGradient>
-          </defs>
-          <polyline :points=points
-          style="fill:transparent;stroke:url(#orange_red);stroke-width:2"/>
-        </svg>
-        <div class="years"><span v-for="year in years" :key="year" class="year">{{year}}</span></div>
-      </div>
-    </div>
-    <div class="right">
-      <div class='title'>Contacts</div>
-      <a href="https://github.com/EasonApolo" class="github"><span></span><div>GitHub</div></a>
-      <a href="mailto:waterlilyapolo@gmail.com" class="gmail"><span></span><div>Gmail</div></a>
-    </div>
+  <div class='about'>
+    <layout>
+      <template #main>
+        <list>
+          <template #list>
+          <div class='item'>
+            <div class='head'>哟，艾博，拉面一狗贼！</div>
+          </div>
+          <div class='item'>
+            <div class='head'>最近更新</div>
+            <Loading :intSwitch=switcher.commit></Loading>
+            <div class='li' v-for="([v, ls], i) in commits" :key='i'>
+              <div class='v'>{{v}}</div>
+              <div class='l'><div v-for="(l, j) in ls" :key="j">{{l}}</div></div>
+            </div>
+          </div>
+          <div class='item'>
+            <div class='head'>Todo List</div>
+            <Loading :intSwitch=switcher.todo></Loading>
+            <div v-for="(li, i) in todos" :key='i'>
+              <div class='li' v-for="([p, c], j) in li" :key='j'>
+                <div class='v'>{{p}}</div><div class='l'>{{c}}</div>
+              </div>
+            </div>
+          </div>
+          <div class='item'>
+            <div class="head">统计</div>
+            <div id="chart" class="block">
+              <Loading :intSwitch=switcher.chart></Loading>
+              <svg version="1.1" xmlns="http://www.w3.org/2000/svg">  
+                <defs>
+                  <linearGradient id="orange_red" x1="0%" y1="100%" x2="0%" y2="0%">
+                    <stop offset="0%" style="stop-color:rgb(225, 225, 255);
+                    stop-opacity:1"/>
+                    <stop offset="100%" style="stop-color:rgb(100,100,255);
+                    stop-opacity:1"/>
+                  </linearGradient>
+                </defs>
+                <polyline :points=points
+                style="fill:transparent;stroke:url(#orange_red);stroke-width:2"/>
+              </svg>
+              <div class="years"><span v-for="year in years" :key="year" class="year">{{year}}</span></div>
+            </div>
+          </div>
+          </template>
+        </list>
+      </template>
+      <template #right>
+        <rbox :title='"Contacts"'>
+          <template #list>
+            <a class='item github' href="https://github.com/EasonApolo"><span></span><div>GitHub</div></a>
+            <a class='item gmail' href="mailto:waterlilyapolo@gmail.com"><span></span><div>Gmail</div></a>
+          </template>
+        </rbox>
+      </template>
+    </layout>
   </div>
 </template>
 
 <script>
-import bus from '@/bus.js'
+import Layout from '@/components/Layout.vue'
+import Rbox from '@/components/Rbox.vue'
+import List from '@/components/List.vue'
 import Loading from '@/components/Loading.vue'
 export default {
   name: 'about',
@@ -67,7 +80,10 @@ export default {
     }
   },
   components: {
-    Loading
+    Loading,
+    'layout': Layout,
+    'list': List,
+    'rbox': Rbox,
   },
   created () {
   },
@@ -154,22 +170,9 @@ export default {
 
 <style scoped lang="scss">
 .about {
-  position: relative;
-  margin: 0 auto;
-  width: 40%;
-  padding-top: 3rem;
-  min-height: 100%;
-  box-sizing: content-box;
-  border-right: 1px solid #eee;
   .item {
-    padding: 1.5rem 0;
-    border-top: 1px solid #eee;
-    transition: .2s ease-in-out;
     a {
       text-decoration: underline;
-    }
-    &:hover {
-      background-color: #eee;
     }
     .head {
       font-size: 1.125rem;
@@ -203,69 +206,40 @@ export default {
       }
     }
   }
-  .item-left {
-    padding: 1rem 2rem;
-    text-align: left;
-  }
   .right {
-    position: absolute;
-    top: 3rem;
-    right: -17rem;
-    padding: .5rem 0 0 0;
-    width: 15rem;
-    border-radius: 1.5rem;
-    background-color: #f6f6ff;
-    text-align: left;
-    overflow: hidden;
-    .title {
-      padding: .5rem 0 1rem 1rem;
-      font-weight: bold;
-    }
     a {
-      display: block;
-      padding: .75rem 1rem;
-      border-top: 1px solid #eee;
-      transition: .2s ease-in-out;
-      font-size: .875rem;
-      line-height: 1.25rem;
       span, div {
         display: inline-block;
         margin-right: .5rem;
+        width: 1.25rem;
+        height: 1.25rem;
         vertical-align: middle;
+        background-size: contain;
       }
     }
     .github {
       background-color: #eef;
       span {
-        width: 1.25rem;
-        height: 1.25rem;
         background-image: url('../../public/github.png');
-        background-size: contain;
       }
     }
     .gmail{
       background-color: #f5f5f5;
       span {
-        width: 1.25rem;
-        height: 1.25rem;
         background-image: url('../../public/gmail.png');
-        background-size: contain;
       }
     }
   }
 }
 @media (max-width: 750px) {
   .about {
-    width: 100%;
-    padding: 2rem 0 3rem 0;
-    margin: 0;
-    border-right: none;
     .right {
-      position: relative;
-      margin: 1rem auto;
-      width: 15rem;
-      right: 0;
-      top: 0;
+      a {
+        div {
+          width: auto;
+          height: auto;
+        }
+      }
     }
   }
 }

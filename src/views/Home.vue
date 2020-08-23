@@ -1,52 +1,77 @@
 <template>
   <div class="home">
-    <div class='right'>
-      <ul class="rbox category">
-        <div>分类</div>
-        <li v-for="c in category" :key="c.id" @click="setCat(c)" :class="{disabled:locked,active:(c.id===cat)}">
-          {{c.name}} ({{c.count}})
-        </li>
-      </ul>
-      <ul class="rbox tags">
-        <div>标签</div>
-        <li v-for="t in tags" :key="t.id" @click="setTag(t)" :class="{active:(t.id===tag),disabled:locked}" v-show="t.description == cat">
-          {{t.name}} ({{t.count}})
-        </li>
-      </ul>
-    </div>
-    <div class="list-wrapper">
-      <List :cat="cat" :page="page" :per_page="per_page" :tag='tag' @loadOK='unlock()' />
-    </div>
-    <div class="nav">
-      <span @click="setPage(page-1)" class="pre" :class="{disable:isPage(page-1)}">上一页</span>
-      <span v-for="n in shownPages" :key="n" :class="{active:n==page}" @click="setPage(n)" class="nav-digit">{{ n }}</span>
-      <span @click="setPage(page+1)" class="post" :class="{disable:isPage(page+1)}">下一页</span>
-    </div>
+    <layout>
+      <template #main>
+        <list :loading='locked'>
+          <template #list>
+            <div class="item" v-for="(item, index) in contents" :key="item.id" :data-index="index" @click="toArt(item.id)">
+              <div class="title">
+                <span>{{item.title.rendered}}</span>
+                <span class="time">{{slicedDate(item.date)}}</span>
+              </div>
+              <div class="content">
+                {{slicedContent(item.content.rendered)}}
+              </div>
+            </div>
+          </template>
+        </list>
+        <div class="nav">
+          <span @click="setPage(page-1)" class="pre" :class="{disable:isPage(page-1)}">上一页</span>
+          <span v-for="n in shownPages" :key="n" :class="{active:n==page}" @click="setPage(n)" class="nav-digit">{{ n }}</span>
+          <span @click="setPage(page+1)" class="post" :class="{disable:isPage(page+1)}">下一页</span>
+        </div>
+      </template>
+      <template #right>
+        <rbox title='分类'>
+          <template #list>
+            <div class='item' v-for="c in category" :key="c.id" @click="setCat(c)" :class="{disabled:locked,active:(c.id===cat)}">
+              {{c.name}} ({{c.count}})
+            </div>
+          </template>
+        </rbox>
+        <rbox title='标签'>
+          <template #list>
+            <div class='item' v-for="t in tags" :key="t.id" @click="setTag(t)" :class="{active:(t.id===tag),disabled:locked}" v-show="t.description == cat">
+              {{t.name}} ({{t.count}})
+            </div>
+          </template>
+        </rbox>
+      </template>
+    </layout>
   </div>
 </template>
 
 <script>
-import bus from '@/bus.js'
+import Layout from '@/components/Layout.vue'
+import Rbox from '@/components/Rbox.vue'
 import List from '@/components/List.vue'
 export default {
   name: 'home',
   data () {
     return {
-      category: [],
-      total_count: 0,
+      //
+      contents: [],
+      // category
       cat: 0,
-      tags: [],
+      category: [],
       mappedCatIDs: [4, 5, 7],
       originCatIDs: [7, 8, 9],
+      // tag
+      tags: [],
       tag: undefined,
+      // nav
+      total_count: 0,
       page: 1,
       page_count: 1,
       per_page: 5,
+      // lock
       locked: false,
     }
   },
   components: {
-    List
+    'list': List,
+    'layout': Layout,
+    'rbox': Rbox,
   },
   created () {
     this.fetchCategory()
@@ -64,9 +89,30 @@ export default {
         if (Math.abs(i-this.page)<=3) shown.push(i)
       }
       return shown
+    },
+    slicedContent: function () {
+      return function (content) {
+        let plain = content.replace(/<[^>]*>/g, '')
+        return plain.length > 147 ? plain.substring(0, 147) + '...' : plain
+      }
+    },
+    catAndPage: function () {
+      return [this.cat, this.page, this.tag].join()
+    },
+    slicedDate: function () {
+      return function (d) {
+        let ds = d.split(/[-T:]/)
+        ds[0] = ds[0].slice(2, 4)
+        ds = ds.slice(0, -1)
+        ds = ds.slice(0,3).join('-') + ' ' + ds.slice(3,5).join(':')
+        return ds
+      }
     }
   },
   methods: {
+    toArt: function (id) {
+      this.$router.push({path: 'art', query: {id: id}})
+    },
     fetchCategory: function () {
       fetch(window.ip + 'categories')
       .then(res => {
@@ -103,31 +149,17 @@ export default {
         this.tags = json
       })
     },
-    setCat: function (cat) {
-      if (this.locked) return
-      this.lock()
-      if (cat.id == this.cat) cat = { id: -1 }
-      this.cat = cat.id
-      this.tag = undefined
-      this.page = 1
-      let cat_count = cat.id == -1 ? this.total_count : cat.count
-      this.page_count = Math.ceil(cat_count / this.per_page)
-      this.lock()
-    },
-    setPage: function (page_id) {
-      if (this.locked) return
-      this.lock()
-      if (page_id < 1 || page_id > this.page_count) {
-        bus.$emit('pop', '没有更多啦')
-        this.unlock()
-        return
-      }
-      this.page = page_id
-      this.lock()
+    fetchData: function () {
+      this.intSwitch = 1
+      let query = `${window.ip}posts?page=${this.page}&per_page=${this.per_page}${this.cat==-1?'':'&categories='+this.cat}${this.tag==undefined?'':'&tags='+this.tag}`
+      fetch(query).then(res => res.json()).then(json => {
+        this.contents = json
+        this.locked = false
+      })
     },
     setTag: function (tag) {
       if (this.locked) return
-      this.lock()
+      else this.locked = true
       // cancel
       if (this.tag == tag.id) {
         this.tag = undefined
@@ -141,6 +173,29 @@ export default {
         this.page_count = Math.ceil(tag.count / this.per_page)
       }
       this.page = 1
+      this.fetchData()
+    },
+    setCat: function (cat) {
+      if (this.locked) return
+      this.lock()
+      if (cat.id == this.cat) cat = { id: -1 }
+      this.cat = cat.id
+      this.tag = undefined
+      this.page = 1
+      let cat_count = cat.id == -1 ? this.total_count : cat.count
+      this.page_count = Math.ceil(cat_count / this.per_page)
+      this.fetchData()
+    },
+    setPage: function (page_id) {
+      if (this.locked) return
+      this.lock()
+      if (page_id < 1 || page_id > this.page_count) {
+        this.$bus.$emit('pop', '没有更多啦')
+        this.unlock()
+        return
+      }
+      this.page = page_id
+      this.fetchData()
     },
     unlock: function () {
       this.locked = false
@@ -153,47 +208,6 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.home {
-  position: relative;
-  margin: 0 auto;
-  padding-bottom: 3rem;
-  width: 40%;
-  min-height: 100vh;
-  border-right: 1px solid #eee;
-}
-.right {
-  position: fixed;
-  left: calc(70% + 2rem);
-  padding-top: 3rem;
-  .rbox {
-    width: 9rem;
-    border-radius: .75rem;
-    font-size: .875rem;
-    text-align: left;
-    li {
-      margin: .25rem 0;
-      padding: .5rem 1rem;
-      border-radius: 2rem;
-      transition: .2s;
-      user-select: none;
-      cursor: pointer;
-      transition: color .2s ease-in-out;
-    }
-    div {
-      padding: .5rem 0;
-      font-size: 1rem;
-    }
-    .disabled {
-      color: #888;
-    }
-    .active {
-      background-color: #f1f1ff;
-    }
-  }
-  .tags {
-    width: 11rem;
-  }
-}
 .nav {
   margin: 2rem auto;
   width: 45%;
@@ -240,98 +254,6 @@ export default {
       width: 1rem;
       background-image: url(../../public/right.png);
       background-size: contain;
-    }
-  }
-}
-@media (min-width: 750px) {
-  .nav .pre:hover {
-    transform: translateX(-.5rem);
-  }
-  .nav .post:hover {
-    transform: translateX(.5rem);
-  }
-  .right .rbox li:hover {
-    background-color: #eeeeff;
-  }
-}
-@media (max-width: 750px) {
-  .home {
-    margin: 0 0 8rem 0;
-    padding-right: 0;
-    width: 100%;
-    border-right: none;
-  }
-  .right {
-    position: fixed;
-    display: flex;
-    flex-direction: column-reverse;
-    left: 0;
-    right: 0;
-    bottom: calc(4rem + 2rem);
-    padding: 0;
-    background-color: #fff;
-    border-top: 1px solid #eee;
-    line-height: 2.5rem;
-    z-index: 1;
-    .rbox {
-      width: 100%;
-      overflow-x: scroll;
-      &::-webkit-scrollbar {
-        display: none;
-      }
-      div, li {
-        display: inline-block;
-        margin: 0;
-        padding: 0;
-        vertical-align: top;
-        text-align: center;
-        font-size: .875rem;
-      }
-      div {
-        width: 5rem;
-        color: transparent;
-        background-image: url(../../public/category.svg);
-        background-size: 1.5rem;
-        background-repeat: no-repeat;
-        background-position: 50% 50%;
-      }
-      li {
-        $h: 1.8rem;
-        margin: (2.5rem - $h)/2 .25rem;
-        padding: 0 .625rem;
-        height: $h;
-        line-height: $h;
-        border-radius: 1rem;
-        color: #555;
-        background-color: #ddd;
-        white-space: nowrap;
-        &.active {
-          color: white;
-          background-color: #5C5FEA;
-        }
-      }
-      div {
-        position: relative;
-        flex: 1 1 auto;
-      }
-    }
-    .tags {
-      div { display: none; }
-      display: flex;
-      flex-wrap: nowrap;
-    }
-  }
-  .nav {
-    position: fixed;
-    margin: 0;
-    padding: 0 2rem;
-    left: 0;
-    right: 0;
-    bottom: calc(4rem + 1px);
-    background-color: white;
-    .active {
-      border-bottom: 3px solid #f1f1ff !important;
-      background-color: white !important;
     }
   }
 }

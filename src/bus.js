@@ -1,6 +1,9 @@
 
 import Vue from 'vue'
 
-let bus = new Vue()
-
-export default bus
+var eventBus = {
+    install(Vue,options) {
+        Vue.prototype.$bus = new Vue()
+    }
+};
+Vue.use(eventBus);

@@ -1,15 +1,16 @@
 <template>
-  <div class="tool">
-    <div class='wrapper' v-if="active==undefined">
-      <div class="content">
-        <div class="choice" v-for="(tool, index) in tools" :key="index" @click="active=tool" :class="tool">
-          {{toolName[tool]}}
-        </div>
-      </div>
-    </div>
-    <div class="back" v-show="active!==undefined" @click="back()">
-      <div class='back-icon'></div>返回
-    </div>
+  <div class="tools">
+    <layout v-if="active==undefined">
+      <template #main>
+        <list>
+          <template #list>
+            <div class="item tool" v-for="(tool, index) in tools" :key="index" @click="active=tool" :class="tool">
+              {{toolName[tool]}}
+            </div>
+          </template>
+        </list>
+      </template>
+    </layout>
     <component v-if='active' v-bind:is="active"></component>
   </div>
 </template>
@@ -19,8 +20,20 @@ import ToolRegex from '../components/ToolRegex'
 import ToolRecord from '../components/ToolRecord'
 import ToolChess from '../components/ToolChess'
 import ToolMofish from '../components/ToolMofish'
+import Layout from '@/components/Layout.vue'
+import Rbox from '@/components/Rbox.vue'
+import List from '@/components/List.vue'
 export default {
   name: 'tool',
+  components: {
+    'regex': ToolRegex,
+    'record': ToolRecord,
+    'chess': ToolChess,
+    'mofish': ToolMofish,
+    'layout': Layout,
+    'rbox': Rbox,
+    'list': List,
+  },
   data () {
     return {
       active: undefined,
@@ -33,11 +46,8 @@ export default {
       },
     }
   },
-  components: {
-    'regex': ToolRegex,
-    'record': ToolRecord,
-    'chess': ToolChess,
-    'mofish': ToolMofish,
+  mounted () {
+    this.$bus.$on('goback', () => this.active = undefined)
   },
   methods: {
     back () {
@@ -48,43 +58,11 @@ export default {
 </script>
 
 <style lang="scss">
-.tool {
-  position: relative;
-  margin: 0 auto;
-  width: 40%;
-  min-height: 100vh;
-  border-right: 1px solid #eee;
-  .wrapper {
-    box-sizing: content-box;
-    padding-bottom: 5rem;
-    padding-top: 3rem;
-  }
-  .content {
-    border-top: 1px solid #eee;
-    .choice {
-      padding: 1rem;
-      height: 3rem;
-      line-height: 3rem;
-      border-bottom: 1px solid #eee;
-      cursor: pointer;
-      &:hover {
-        background-color: #fafafa;
-      }
-    }
-    .item {
-      padding: 1rem 2rem;
-      border-bottom: 1px solid #eee;
-      line-height: 1.25rem;
-      font-size: .875rem;
-      transition: .2s ease-in-out;
-      &:hover {
-        background-color: #eee;
-      }
-      .fulllink {
-        display: inline-block;
-        width: 100%;
-      }
-    }
+.tools {
+  .tool {
+    text-align: center;
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
   }
   .back {
     position: absolute;
@@ -117,38 +95,11 @@ export default {
   }
 
   .right {
-    position: absolute;
-    top: 3rem;
-    right: -17rem;
-    padding: .5rem 0 0 0;
-    width: 15rem;
     .rbox {
-      margin-bottom: 1rem;
-      border-radius: 1rem;
-      background-color: #f6f6fc;
-      text-align: left;
-      overflow: hidden;
-      .title {
-        padding: 1rem;
-        font-weight: bold;
-      }
       .activeindex {
         background-color: #eeeef4;
       }
       .ritem {
-        padding: .75rem 1rem;
-        border-top: 1px solid #eee;
-        font-size: .875rem;
-        line-height: 1.25rem;
-        transition: background-color .2s ease-in-out;
-        span {
-          word-wrap: break-word;
-          vertical-align: middle;
-        }
-        cursor: pointer;
-        &:hover {
-          background-color: #eeeef4;
-        }
         .remove {
           float: right;
           width: 1rem;
@@ -157,22 +108,6 @@ export default {
           background-size: contain;
         }
       }
-    }
-  }
-}
-@media (max-width: 750px) {
-  .tool {
-    margin-left: 0;
-    padding-right: 0;
-    width: 100%;
-    border-right: none;
-    .right {
-      position: relative;
-      display: block;
-      width: calc(100% - 4rem);
-      left: 0;
-      top: 0;
-      margin: 2rem 2rem 5rem 2rem;
     }
   }
 }

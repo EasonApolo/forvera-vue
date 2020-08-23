@@ -5,7 +5,6 @@
 </template>
 
 <script>
-import bus from '@/bus.js'
 export default {
   name: 'pop',
   data () {
@@ -17,8 +16,8 @@ export default {
       t_s: 100,
     }
   },
-  created () {
-    bus.$on('pop', this.handler)
+  mounted () {
+    this.$bus.$on('pop', this.handler)
   },
   computed: {
     getRight () {

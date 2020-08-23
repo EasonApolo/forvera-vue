@@ -1,7 +1,8 @@
 <template>
   <div class="list">
-    <Loading :intSwitch=intSwitch></Loading>
-    <div class="item" v-for="(item, index) in items" :key="item.id" :data-index="index" @click="toArt(item.id)">
+    <Loading :intSwitch=loading></Loading>
+    <slot name='list'></slot>
+    <!-- <div class="item" v-for="(item, index) in items" :key="item.id" :data-index="index" @click="toArt(item.id)">
       <div class="title">
         <span>{{item.title.rendered}}</span>
         <span class="time">{{slicedDate(item.date)}}</span>
@@ -9,19 +10,17 @@
       <div class="content">
         {{slicedContent(item.content.rendered)}}
       </div>
-    </div>
+    </div> -->
   </div>
 </template>
 
 <script>
-import bus from '@/bus.js'
 import Loading from '@/components/Loading.vue'
 export default {
   name: 'List',
-  props: {cat: {}, per_page: {}, page: {default: 1}, tag: {}},
+  props: ['loading'],
   data () {
     return {
-      items: [],
       intSwitch: 0
     }
   },
@@ -29,52 +28,12 @@ export default {
     Loading
   },
   mounted () {
-    // this.fetchData()
   },
   computed: {
-    slicedContent: function () {
-      return function (content) {
-        let plain = content.replace(/<[^>]*>/g, '')
-        return plain.length > 147 ? plain.substring(0, 147) + '...' : plain
-      }
-    },
-    catAndPage: function () {
-      return [this.cat, this.page, this.tag].join()
-    },
-    slicedDate: function () {
-      return function (d) {
-        let ds = d.split(/[-T:]/)
-        ds[0] = ds[0].slice(2, 4)
-        ds = ds.slice(0, -1)
-        ds = ds.slice(0,3).join('-') + ' ' + ds.slice(3,5).join(':')
-        return ds
-      }
-    }
   },
   methods: {
-    toArt: function (id) {
-      this.$router.push({path: 'art', query: {id: id}})
-    },
-    fetchData: function () {
-      this.intSwitch = 1
-      let query = `${window.ip}posts?page=${this.page}&per_page=${this.per_page}${this.cat==-1?'':'&categories='+this.cat}${this.tag==undefined?'':'&tags='+this.tag}`
-      fetch(query)
-      .then(res => {
-        return res.json()
-      }).then(json => {
-        this.intSwitch = 0
-        this.items = json
-        this.$emit('loadOK')
-      })
-    }
   },
   watch: {
-    'catAndPage': {
-      handler: function (val) {
-        this.fetchData()
-      },
-      immediate: false,
-    }
   }
 }
 </script>
@@ -104,6 +63,7 @@ export default {
   }
 }
 .item {
+  display: block;
   width: calc(100% - 4rem);
   left: 0;
   padding: 1rem 2rem;
@@ -134,6 +94,11 @@ export default {
     color: #555;
     word-wrap: break-word;
   }
+}
+.item-child {
+  margin-top: 1rem;
+  padding-bottom: 0;
+  border-bottom: 0;
 }
 .list > .item {
   border-top: 1px solid #eee;

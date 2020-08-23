@@ -1,27 +1,46 @@
 <template>
-  <div class='wrapper'>
-    <div class="content">
-      <audio :src="rec.src" controls></audio>
-      <div class="item description" v-if="rec.src">
-        {{rec.date}}<br>{{rec.description}}
-      </div>
-    </div>
-    <div class="right">
-      <div class='rbox'>
-        <div class="title">播放列表</div>
-        <div v-for="(r, index) in reclist" :key="index" class="ritem" @click="play(r, index)" :class="{activeindex:active===index}">
-          <span>{{r.title}}</span>
-        </div>
-      </div>
-    </div>
-  </div>
+  <layout>
+    <template #main>
+      <list>
+        <template #list>
+          <div class='item audio'>
+            <audio :src="rec.src" controls></audio>
+          </div>
+          <div class="item description" v-if="rec.src">
+            {{rec.date}}<br>{{rec.description}}
+          </div>
+        </template>
+      </list>
+    </template>
+    <template #right>
+      <goback></goback>
+      <rbox :title='"播放列表"'>
+        <template #list>
+          <div v-for="(r, index) in reclist" :key="index" class="item" @click="play(r, index)" :class="{active:active===index}">
+            <span>{{r.title}}</span>
+          </div>
+        </template>
+      </rbox>
+    </template>
+  </layout>
 </template>
 
 <script>
+import Goback from './Goback.vue'
+import Layout from './Layout.vue'
+import List from './List.vue'
+import Rbox from './Rbox.vue'
+
 let fetchJsonp = require('fetch-jsonp')
 
 export default {
   name: 'ToolRecord',
+  components: {
+    'goback': Goback,
+    'layout': Layout,
+    'list': List,
+    'rbox': Rbox,
+  },
   data () {
     return {
       active: -1,
@@ -85,12 +104,11 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.content {
-  padding-top: 1rem;
-  border-top: 1px solid #eee;
-  .description {
-    color: #888;
-    text-align: left;
-  }
+.audio {
+  text-align: center;
+}
+.description {
+  color: #888;
+  text-align: left;
 }
 </style>

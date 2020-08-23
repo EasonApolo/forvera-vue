@@ -1,20 +1,35 @@
 <template>
-  <div class='wrapper'>
-    <div class="content">
-      <div class="item"><a class='fulllink' href='http://forvera.me/chess'>启动！</a></div>
-    </div>
-    <div class="right">
-      <div class='rbox'>
-        <div class="title">尚未完工</div>
-      </div>
-    </div>
-  </div>
+  <layout>
+    <template #main>
+      <list>
+        <template #list>
+          <a class='item' href='http://forvera.me/chess'>启动！</a>
+        </template>
+      </list>
+    </template>
+    <template #right>
+      <goback></goback>
+      <rbox :title='"尚未完工"'>
+      </rbox>
+    </template>
+  </layout>
 </template>
 
 
 <script>
+import Goback from './Goback.vue'
+import Layout from './Layout.vue'
+import List from './List.vue'
+import Rbox from './Rbox.vue'
+
 export default {
   name: 'ToolChess',
+  components: {
+    'goback': Goback,
+    'layout': Layout,
+    'list': List,
+    'rbox': Rbox,
+  },
   data () {
     return {
     }

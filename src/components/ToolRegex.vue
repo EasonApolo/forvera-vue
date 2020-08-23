@@ -1,44 +1,55 @@
 <template>
-  <div class='wrapper'>
-    <div class="content">
-      <textarea id="input" placeholder="input" rows="10" v-model="reg.input"></textarea>
-      <div style="position:relative">
-        <textarea id="reg" placeholder="regular expression" rows="2" v-model="reg.reg"></textarea>
-        <button id="save" @click="save">保存</button>
-      </div>
-      <button id="parse" @click="parse">提取</button>
-      <textarea id="output" placeholder="output" rows="10" v-text="reg.output"></textarea>
-      <span id="count" v-text="count"></span>
-    </div>
-    <div class="right">
-      <div class='rbox'>
-        <div class="title">已保存的正则表达式</div>
-        <div v-for="(reg, index) in reglist" :key="index" :class="{activeindex:listindex===index}" class="ritem" @click="replace(index)">
-          <span>{{reg}}</span>
-          <span class="remove" @click.stop="remove(index)"></span>
-        </div>
-      </div>
-      <div class='rbox'>
-        <div class="title">说明</div>
-        <div class="ritem plain"><b>特点</b><br>给目标词语加上()可以单独提取词语，多个词语自动用tab分隔，可以直接复制进Excel。</div>
-        <div class="ritem" @click='setExample'>
-          <b>例子</b>
-          <br><i style='color:#aaa;font-size:13px'>{{eg[0]}}</i>
-          <br>▸{{eg[1]}}
-          <br>◂3500	77.6	1.353
-        </div>
-        <div class="ritem flex-item plain">
-          <b>常用</b>
-          <span class='flex-ele' v-for='(e, i) in el' :key='i' @click='reg.reg+=e[0]'>{{e[0]}}<span v-if='e.length>1'>{{e[1]}}</span></span>
-        </div>
-      </div>
-    </div>
-  </div>
+  <layout>
+    <template #main>
+      <list>
+        <template #list>
+          <textarea class='item' id="input" placeholder="input" rows="10" v-model="reg.input"></textarea>
+          <textarea class='item' id="reg" placeholder="regular expression" rows="2" v-model="reg.reg"></textarea>
+          <div class='item buts'>
+            <button id="parse" @click="parse">提取</button>
+            <button id="save" @click="save">保存</button>
+          </div>
+          <textarea class='item' id="output" placeholder="output" rows="10" v-text="reg.output"></textarea>
+          <div class='item' v-text="count"></div>
+        </template>
+      </list>
+    </template>
+    <template #right>
+      <goback></goback>
+      <rbox :title='"已保存的正则表达式"'>
+        <template #list>
+          <div v-for="(reg, index) in reglist" :key="index" :class="{active:listindex===index}" class="item" @click="replace(index)">
+            <span>{{reg}}</span>
+            <span class="remove" @click.stop="remove(index)"></span>
+          </div>
+        </template>
+      </rbox>
+      <rbox :title='"说明"'>
+        <template #list>
+          <div class="item plain"><b>特点</b><br>给目标词语加上()可以单独提取词语，多个词语自动用tab分隔，可以直接复制进Excel。</div>
+          <div class="item" @click='setExample'>
+            <b>例子</b>
+            <br><i style='color:#aaa;font-size:13px'>{{eg[0]}}</i>
+            <br>▸{{eg[1]}}
+            <br>◂3500	77.6	1.353
+          </div>
+          <div class="item flex-item plain">
+            <b>常用</b>
+            <span class='flex-ele' v-for='(e, i) in el' :key='i' @click='reg.reg+=e[0]'>{{e[0]}}<span v-if='e.length>1'>{{e[1]}}</span></span>
+          </div>
+        </template>
+      </rbox>
+    </template>
+  </layout>
 </template>
 
 
 <script>
-import bus from '../bus.js'
+import Goback from './Goback.vue'
+import Layout from './Layout.vue'
+import List from './List.vue'
+import Rbox from './Rbox.vue'
+
 export default {
   name: 'ToolRegex',
   data () {
@@ -57,6 +68,10 @@ export default {
     }
   },
   components: {
+    'goback': Goback,
+    'layout': Layout,
+    'list': List,
+    'rbox': Rbox,
   },
   created () {
     if (localStorage.regex === 'undefined' || localStorage.regex === undefined) {
@@ -76,7 +91,7 @@ export default {
     parse: function () {
       this.clearOutput()
       if(this.reg.reg === '') {
-        bus.$emit('pop', '你还没有填正则表达式嘞')
+        this.$bus.$emit('pop', '你还没有填正则表达式嘞')
         return
       }
       let reg = new RegExp(this.reg.reg, 'g')
@@ -92,7 +107,7 @@ export default {
       if (c === 0) {
           this.print("", 0);
       }
-      bus.$emit('pop', '提取完成')
+      this.$bus.$emit('pop', '提取完成')
     },
     clearOutput: function () {
       this.reg.output = ''
@@ -111,7 +126,7 @@ export default {
     },
     save: function () {
       this.reglist.unshift(this.reg.reg)
-      bus.$emit('pop', '已保存在saved regexp中')
+      this.$bus.$emit('pop', '已保存在saved regexp中')
     },
     setExample: function () {
       if (this.reg.input == '' && this.reg.reg == '') {
@@ -130,22 +145,18 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.content {
-  padding-top: 1rem;
-  textarea, button {
-    display: block;
-    margin: 0 auto 1rem auto;
-    transition: all .2s ease;
-  }
-  textarea {
-    padding: .5rem;
-    width: 90%;
-    border: 1px solid #eee;
-    &:focus {
-      border-color: #aaf;
-    }
-  }
+textarea, button {
+  display: block;
+}
+textarea {
+  padding: .5rem;
+  width: 90%;
+}
+.buts {
+  text-align: center;
   button {
+    display: inline-block;
+    margin: 0 1rem;
     padding: .375rem 1rem;
     background-color: white;
     border: solid 1px #ccf;
@@ -157,12 +168,6 @@ export default {
       background-color: #ccf !important;
       color: white;
     }
-  }
-  #save {
-    position: absolute;
-    right: 5%;
-    top: .5rem;
-    background-color: transparent;
   }
 }
 .right {

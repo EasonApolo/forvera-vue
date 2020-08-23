@@ -1,46 +1,51 @@
 <template>
-  <div class="art">
-    <div class="article" v-if="artData.title" @click='rightToggle=false'>
-      <div class="title">{{artData.title.rendered}}</div>
-      <div class="time">{{slicedDate(artData.date)}}</div>
-      <div class="content" v-html="artData.content.rendered"></div>
-    </div>
-    <Loading :intSwitch=switch1></Loading>
-    <div id="comment-header">> 评论 { {{commentsData.length}} }</div>
-    <div class="comment-wrapper" v-if="commentsLoadOK">
-      <div v-for="(comment, index) in commentsData" :key="comment.id" class="comment">
-        <span class="name">{{comment.author_name}}</span>
-        <span v-if="comment.parent !== 0" class="replyto">&nbsp;&nbsp;-->&nbsp;&nbsp;{{replyToName(comment.toIndex)}}</span>
-        <span class="content">: {{comment.content.rendered.replace(/<[^>]*>/g, '')}}</span>
-        <span class="reply" @click="commentToIndex = index">回复</span>
-        <span class="time">{{slicedDate(comment.date)}}</span>
-      </div>
-    </div>
-    <Loading :intSwitch=switch2></Loading>
-    <ul class="add" @click='rightToggle=false'>
-      <li>> 添加评论<span v-show="commentToIndex !== -1" class="addTo">
-          对  <i> {{commentToName}} </i> 
-          <span id="removeAddTo" @click="commentToIndex = -1">取消</span></span>
-      </li>
-      <li><textarea name="content" rows="2" placeholder="评论" v-model="addContent"/></li>
-      <li><input name="name" placeholder="名字" v-model="addName"></li>
-      <li><input type="submit" value="提交" @click="addComment" :class="{disabled:addSending}"></li>
-    </ul>
-    <div class="scrollToTop" :class="{scrollToBottom:toBottom}" @click="scrollToTop"></div>
-    <div class='right' :class='{mini:!miniRight}' @click='rightToggle=!rightToggle'>
-      <div class='rbox' v-if="titles.length > 0">
-        <div class='title'>目录</div>
-        <div class='item' v-for='(t, i) in titles' :key='i' :class='{secondTitle:t[1]!=undefined}' @click='jumpToTitle($event, i)'>
-          <span v-if='t[1]==undefined'>{{t[0]}}</span>
-          {{t[2]}}
+  <div>
+    <layout>
+      <template #main>
+        <div class="article" v-if="artData.title" @click='rightToggle=false'>
+          <div class="title">{{artData.title.rendered}}</div>
+          <div class="time">{{slicedDate(artData.date)}}</div>
+          <div class="content" v-html="artData.content.rendered"></div>
         </div>
-      </div>
-    </div>
+        <Loading :intSwitch=switch1></Loading>
+        <div id="comment-header">> 评论 { {{commentsData.length}} }</div>
+        <div class="comment-wrapper" v-if="commentsLoadOK">
+          <div v-for="(comment, index) in commentsData" :key="comment.id" class="comment">
+            <span class="name">{{comment.author_name}}</span>
+            <span v-if="comment.parent !== 0" class="replyto">&nbsp;&nbsp;-->&nbsp;&nbsp;{{replyToName(comment.toIndex)}}</span>
+            <span class="content">: {{comment.content.rendered.replace(/<[^>]*>/g, '')}}</span>
+            <span class="reply" @click="commentToIndex = index">回复</span>
+            <span class="time">{{slicedDate(comment.date)}}</span>
+          </div>
+        </div>
+        <Loading :intSwitch=switch2></Loading>
+        <ul class="add" @click='rightToggle=false'>
+          <li>> 添加评论<span v-show="commentToIndex !== -1" class="addTo">
+              对  <i> {{commentToName}} </i> 
+              <span id="removeAddTo" @click="commentToIndex = -1">取消</span></span>
+          </li>
+          <li><textarea name="content" rows="2" placeholder="评论" v-model="addContent"/></li>
+          <li><input name="name" placeholder="名字" v-model="addName"></li>
+          <li><input type="submit" value="提交" @click="addComment" :class="{disabled:addSending}"></li>
+        </ul>
+      </template>
+      <template #right>
+        <rbox title='目录' :class='{mini:!miniRight}' @click='rightToggle=!rightToggle' v-if="titles.length > 0">
+          <template #list>
+            <div class='item' v-for='(t, i) in titles' :key='i' :class='{second:t[1]!=undefined}' @click='jumpToTitle($event, i)'>
+              <span v-if='t[1]==undefined'>{{t[0]}}</span>
+              {{t[2]}}
+            </div>
+          </template>
+        </rbox>
+      </template>
+    </layout>
   </div>
 </template>
 
 <script>
-import bus from '@/bus.js'
+import Layout from '@/components/Layout.vue'
+import Rbox from '@/components/Rbox.vue'
 import Loading from '@/components/Loading.vue'
 export default {
   name: 'art',
@@ -57,8 +62,6 @@ export default {
       //other setting
       switch1: 0,
       switch2: 0,
-      scrollY: 0,
-      autoScrolling: undefined,
       //addComment
       commentToIndex: -1,
       addName: '',
@@ -66,10 +69,13 @@ export default {
       addSending: false,
       // right menu
       rightToggle: false,
+      mainNode: undefined
     }
   },
   components: {
-    Loading
+    Loading,
+    'layout': Layout,
+    'rbox': Rbox,
   },
   computed: {
     replyToName: function () {
@@ -88,61 +94,23 @@ export default {
         return ds
       }
     },
-    toBottom: function () {
-      return this.scrollY <= 800
-    },
     miniRight: function () {
       return document.body.clientWidth > 750 || this.rightToggle
-    }
+    },
   },
   created () {
     this.postId = this.$route.query.id
     this.fetchArticle()
     this.fetchComment()
-    window.addEventListener('scroll', this.scroll)
+  },
+  mounted () {
+    this.mainNode = document.getElementsByClassName('main')[0]
   },
   methods: {
-    scroll: function () {
-      this.scrollY = document.documentElement.scrollTop || 
-                window.pageYOffset || 
-                document.body.scrollTop;
-    },
-    scrollToTop: function () {
-      if (this.autoScrolling) return
-      let src, tgt
-      if (this.toBottom) {
-        src = this.scrollY
-        tgt = document.body.clientHeight - document.documentElement.clientHeight
-      } else {
-        src = this.scrollY
-        tgt = 0
-      }
-      if (document.body.clientWidth < 750) {
-        document.documentElement.scrollTop = tgt
-        return
-      }
-      let i = 0
-      // init last as src
-      let last = src
-      this.autoScrolling = setInterval(() => {
-        //200*0.012=2.4s
-        i = Math.min(1, i+0.006)
-        //如果在自动回顶时，用户scroll了，scrollTop就会和last不同，这时就停止
-        if (last != document.documentElement.scrollTop) this.clearInterval()
-        //偶数次方用1-Math，奇数次用1+Math
-        document.documentElement.scrollTop = src +  (tgt-src) * (1-Math.pow(i-1, 8))
-        last = document.documentElement.scrollTop
-        if (i >= 1) this.clearInterval()
-      }, 12)
-    },
-    clearInterval: function () {
-      clearInterval(this.autoScrolling)
-      this.autoScrolling = undefined
-    },
     addComment () {
       if (this.addSending) return
       if (this.addContent.replace(/\s+/g, '') === '') {
-        bus.$emit('pop', '姓名或评论不能为空*A*')
+        this.$bus.$emit('pop', '姓名或评论不能为空*A*')
         return
       }
       this.addSending = true
@@ -190,7 +158,7 @@ export default {
       let p_nodes = document.getElementsByTagName('p')
       for (let i = 0; i < p_nodes.length; i++) {
         if (p_nodes[i].innerText == t) {
-          document.documentElement.scrollTop = p_nodes[i].offsetTop
+          this.mainNode.scrollTop = p_nodes[i].offsetTop
           break
         }
       }
@@ -221,7 +189,7 @@ export default {
     reload (index) {
       let id = this.navData[index].id
       if (id === -1) {
-        bus.$emit('pop', this.navData[index].title)
+        this.$bus.$emit('pop', this.navData[index].title)
         return
       }
       this.$router.push({path: 'art', query: {id: id}})
@@ -230,8 +198,6 @@ export default {
       this.commentsData = {}
       this.commentsLoadOK = false
       this.navData = []
-      //other setting
-      this.scrollY = 0
       //addComment
       this.commentToIndex = -1
       this.addName = ''
@@ -293,37 +259,6 @@ export default {
     }
     /deep/ pre {
       white-space: pre-wrap;
-    }
-  }
-}
-.right {
-  position: fixed;
-  left: calc(70% + 2rem);
-  top: 3rem;
-  width: 15rem;
-  .rbox {
-    border-radius: 1rem;
-    background-color: #f6f6fc;
-    text-align: left;
-    font-size: .875rem;
-    .title {
-      padding: .75rem 1rem;
-      border-bottom: 1px solid #eee;
-      font-size: 16px;
-      font-weight: bold;
-    }
-    .item {
-      padding: .5rem 1rem;
-      color: #555;
-      cursor: pointer;
-      transition: color .3s ease;
-      &:hover {
-        color: #000;
-      }
-    }
-    .secondTitle {
-      padding: 0 1.5rem .5rem 2rem;
-      color: #888;
     }
   }
 }
@@ -412,27 +347,6 @@ export default {
     border: 1px #4FB9F1 solid;
   }
 }
-.scrollToTop {
-  position: fixed;
-  width: 2rem;
-  height: 2rem;
-  right: 2rem;
-  bottom: 8rem;
-  background-color: #eeeef4;
-  background-image: url(../../public/top.png);
-  background-size: 30% 30%;
-  background-position: 50% 50%;
-  background-repeat: no-repeat;
-  border-radius: 50%;
-  cursor: pointer;
-  transition: .2s ease;
-  &:hover {
-    background-position: 50% 40%;
-  }
-}
-.scrollToBottom {
-  transform: rotateZ(180deg);
-}
 @media (max-width: 750px) {
   .art {
     margin: 0;
@@ -449,30 +363,7 @@ export default {
     max-width: 100%;
     height: auto;
   }
-  .scrollToTop {
-    left: 1rem;
-    bottom: 5rem;
-    width: 2.5rem;
-    height: 2.5rem;
-  }
   .right {
-    position: fixed;
-    top: auto;
-    left: 1rem;
-    bottom: 8rem;
-  }
-  .mini {
-    width: 2.5rem;
-    height: 2.5rem;
-    background-color: #F6F6FC;
-    background-image: url(../../public/menu.svg);
-    background-size: 1rem;
-    background-repeat: no-repeat;
-    background-position: 50% 50%;
-    border-radius: 1.5rem;
-    & div {
-      display: none;
-    }
   }
 }
 </style>

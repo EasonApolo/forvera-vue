@@ -1,33 +1,53 @@
 <template>
-  <div class='wrapper'>
-    <div class="content" v-for="(d, index) in data" :key='index' @click="open(d.Url)">
-      <div class='title'>{{d.Title}}</div>
-      <div class='heat' v-if='d.hotDesc'>{{d.hotDesc}}</div>
-      <div class='date'>{{getDate(d.CreateTime)}}</div>
-    </div>
-    <div class="right m-suspend">
-      <div class='rbox m-bar'>
-        <div class="title m-hidden">Sites</div>
-        <div v-for="(s, index) in sites" :key="index" class="ritem" @click="fetchData(s[0], index)" :class="{activeindex:active===index}">
-          <span>{{s[1]}}</span>
-          <div class='up' v-if="index>0" @click.stop='setDefaultSites(index)'></div>
-        </div>
-      </div>
-      <div class='rbox m-hidden'>
-        <div class="title">Reference</div>
-        <div class="ritem" @click='open("https://github.com/tophubs/TopList")'>
-          数据接口来自：<br>
-          https://github.com/tophubs/TopList<br>
-          https://mo.fish/main/home/hot<br>
-        </div>
-      </div>
-    </div>
-  </div>
+  <layout>
+    <template #main>
+      <list>
+        <template #list>
+          <div class="item" v-for="(d, index) in data" :key='index' @click="open(d.Url)">
+            <div class='title'>{{d.Title}}</div>
+            <div class='heat' v-if='d.hotDesc'>{{d.hotDesc}}</div>
+            <div class='date'>{{getDate(d)}}</div>
+          </div>
+        </template>
+      </list>
+    </template>
+    <template #right class="right m-suspend">
+      <goback></goback>
+      <rbox :title='"Sites"'>
+        <template #list>
+          <div v-for="(s, index) in sites" :key="index" class="item" @click="fetchData(s[0], index)" :class="{active:active===index}">
+            <span>{{s[1]}}</span>
+            <div class='up' v-if="index>0" @click.stop='setDefaultSites(index)'></div>
+          </div>
+        </template>
+      </rbox>
+      <rbox :title='"Reference"'>
+        <template #list>
+          <div class="item" @click='open("https://github.com/tophubs/TopList")'>
+            数据接口来自：<br>
+            https://github.com/tophubs/TopList<br>
+            https://mo.fish/main/home/hot<br>
+          </div>
+        </template>
+      </rbox>
+    </template>
+  </layout>
 </template>
 
 <script>
+import Goback from './Goback.vue'
+import Layout from './Layout.vue'
+import List from './List.vue'
+import Rbox from './Rbox.vue'
+
 export default {
   name: 'ToolRecord',
+  components: {
+    'goback': Goback,
+    'layout': Layout,
+    'list': List,
+    'rbox': Rbox,
+  },
   data () {
     return {
       active: 0,
@@ -45,9 +65,13 @@ export default {
   beforeDestroy () {
   },
   computed: {
-    getDate: function (time) {
-      return time => {
-        return (new Date(time*1000)).toISOString().split('T').join(' ').slice(0, -8)
+    getDate: function () {
+      return data => {
+        if (data.CreateTime) {
+          return (new Date(data.CreateTime*1000)).toISOString().split('T').join(' ').slice(0, -8)
+        } else {
+          return data.Url
+        }
       }
     }
   },
@@ -79,23 +103,15 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.content {
+.item {
   display: flex;
   flex-wrap: wrap;
-  padding: 1rem;
-  border-top: 1px solid #eee;
-  text-align: left;
-  font-size: 14px;
-  user-select: none;
-  cursor: pointer;
-  transition: background-color .2s ease-in-out;
-  &:hover {
-    background-color: #eee;
-  }
   .title {
     flex: 0 0 auto;
-    width: 100%;
     margin-bottom: .5rem;
+    width: 100%;
+    font-size: .875rem;
+    font-weight: normal;
   }
   .date {
     flex: 1 1 auto;
@@ -110,48 +126,10 @@ export default {
     font-size: 12px;
   }
 }
-.right {
-  user-select: none;
-  .rbox .ritem{
-    display: flex;
-    align-items: center;
-    &:hover .up{
-      display: block;
-    }
-    span {
-      flex: 1 1 auto;
-    }
-    .up {
-      display: none;
-      flex: 0 0 auto;
-      width: .75rem;
-      height: .75rem;
-      opacity: .2;
-      background-image: url(../../public/top.png);
-      background-size: contain;
-      transition: .2s ease-in-out;
-      &:hover {
-        opacity: .4;
-      }
-    }
-  }
-}
 @media (max-width: 750px) {
   .m-suspend {
-    position: fixed !important;
-    top: 75% !important;
     .m-bar {
-      display: flex;
-      flex-wrap: nowrap;
-      overflow-x: auto !important;
-      &::-webkit-scrollbar {
-        display: none;
-      }
       .ritem {
-        flex: 0 0 auto;
-        height: 1rem;
-        line-height: 1rem;
-        border: none !important;
         .up {
           display: none !important;
         }
