@@ -3,6 +3,7 @@ import App from './App.vue'
 import router from './router'
 import bus from './bus'
 
+Vue.use(bus);
 Vue.config.productionTip = false
 
 var vm = new Vue({

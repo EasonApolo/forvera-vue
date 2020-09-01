@@ -227,7 +227,7 @@ export default {
     font-size: .9375rem;
     line-height: 1rem;
     /deep/ p {
-      margin: 1.25rem 0;
+      margin: .75rem 0;
       line-height: 1.625rem;
       text-align: left;
       word-wrap: break-word;
@@ -259,6 +259,20 @@ export default {
     }
     /deep/ pre {
       white-space: pre-wrap;
+    }
+    /deep/ ol, ul {
+      padding-left: 1rem;
+      border-top: 1px solid #eee;
+      border-bottom: 1px solid #eee;
+      text-align: left;
+      li {
+        margin: .5rem 0;
+        line-height: 1.25rem;
+      }
+    }
+    /deep/ strong {
+      margin-top: .75rem;
+      display: inline-block;
     }
   }
 }

@@ -16,20 +16,20 @@
 </template>
 
 <script>
-import ToolRegex from '../components/ToolRegex'
-import ToolRecord from '../components/ToolRecord'
-import ToolChess from '../components/ToolChess'
-import ToolMofish from '../components/ToolMofish'
+import Regex from '../components/tools/Regex'
+import Record from '../components/tools/Record'
+import Chess from '../components/tools/Chess'
+import Mofish from '../components/tools/Mofish'
 import Layout from '@/components/Layout.vue'
 import Rbox from '@/components/Rbox.vue'
 import List from '@/components/List.vue'
 export default {
   name: 'tool',
   components: {
-    'regex': ToolRegex,
-    'record': ToolRecord,
-    'chess': ToolChess,
-    'mofish': ToolMofish,
+    'regex': Regex,
+    'record': Record,
+    'chess': Chess,
+    'mofish': Mofish,
     'layout': Layout,
     'rbox': Rbox,
     'list': List,

@@ -17,13 +17,13 @@
 
 
 <script>
-import Goback from './Goback.vue'
-import Layout from './Layout.vue'
-import List from './List.vue'
-import Rbox from './Rbox.vue'
+import Goback from '../Goback.vue'
+import Layout from '../Layout.vue'
+import List from '../List.vue'
+import Rbox from '../Rbox.vue'
 
 export default {
-  name: 'ToolChess',
+  name: 'Chess',
   components: {
     'goback': Goback,
     'layout': Layout,
