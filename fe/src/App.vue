@@ -1,0 +1,202 @@
+<template>
+  <div id="app">
+    <keep-alive include="home,twit,playground,profile" exclude="edit">
+      <router-view/>
+    </keep-alive>
+    <pop></pop>
+    <div id="nav">
+      <ul id="nav-content">
+        <router-link to="/">{{titleHome}}</router-link>
+        <router-link to="/twit">{{titleTwit}}</router-link>
+        <router-link to="/playground">{{titleTool}}</router-link>
+        <router-link to="/profile">{{titleAbout}}</router-link>
+      </ul>
+    </div>
+  </div>
+</template>
+
+<script>
+import Pop from '@/components/Pop'
+import { request } from './shared/Request'
+export default {
+  data () {
+    return {
+      transitionName: ''
+    }
+  },
+  components: {
+    Pop
+  },
+  computed: {
+    titleHome () {
+      return '文章'
+    },
+    titleTwit () {
+      return '发言'
+    },
+    titleTool () {
+      return '游乐园'
+    },
+    titleAbout () {
+      return '账户'
+    },
+  },
+  watch: {
+    '$route' (to, from) {
+      const routelist = ['home', 'twit', 'tool', 'about']
+      if (to.name === 'art') {
+        this.transitionName = 'slide-left'
+      } else if (from.name === 'art') {
+        this.transitionName = 'slide-right'
+      } else if (routelist.indexOf(from.name) > routelist.indexOf(to.name)){
+        this.transitionName = 'slide-down'
+      } else {
+        this.transitionName = 'slide-up'
+      }
+    }
+  },
+  created () {
+  },
+  mounted () {
+    this.loginTransaction()
+  },
+  methods: {
+    async loginTransaction () {
+      this.$store.commit('setToken', localStorage.token)
+      let status = await this.checkStatus()
+      console.log(`[App] startup login status: ${status}`)
+      if (status) {
+        this.$store.commit('login', true)
+      }
+    },
+    async checkStatus () {
+      const res = await request('auth/status', 'POST')
+      return res.statusCode == 200
+    },
+  }
+}
+</script>
+
+<style lang="scss">
+html {
+  overflow-y: scroll;
+}
+body {
+  margin: 0;
+  -webkit-overflow-scrolling: touch;
+  -webkit-tap-highlight-color:rgba(0,0,0,0);
+}
+div, a, button, span, li {
+  -webkit-tap-highlight-color:rgba(0,0,0,0);
+}
+input, textarea {
+  display: block;
+  padding: 0;
+  border: none;
+  background-color: transparent;
+  outline: none;
+  border-radius: 0;
+  -webkit-appearance: none;
+  font-size: .875rem;
+  line-height: 1.25rem;
+  height: 1.25rem;
+  resize: none;
+  font-family: 'Avenir', Helvetica, Arial, sans-serif;
+}
+a {
+  color: #2c3e50;
+  text-decoration: none;
+}
+ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+#app {
+  position: relative;
+  margin: 0 auto;
+  max-width: 1000px;
+  height: 100%;
+  text-align: center;
+  color: #2c3e50;
+  font-family: 'Avenir', Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+/*这个好像必须要有，height可以没有*/
+::-webkit-scrollbar {
+  width: 10px;
+}
+/*滚动条背景*/
+::-webkit-scrollbar-track-piece {
+  background-color: #fff; 
+  border-radius: 0;
+}
+/*垂直滚动条的样式*/
+::-webkit-scrollbar-thumb:vertical { 
+    background-color: #ccc;
+    border-radius: 16px;
+    outline: 2px solid #fff;
+    outline-offset: -2px;
+    border: 2px solid #fff;
+}
+@media (min-width: 750px) {
+  #nav {
+    position: absolute;
+    padding: 3rem 2rem 0 0;
+    top: 0;
+    left: 0;
+    height: calc(100% - 3rem);
+    border-right: 1px solid #eee;
+    z-index: 1;
+  }
+  #nav-content {
+    width: 9rem;
+    a {
+      margin-bottom: 1rem;
+      display: block;
+      padding: 0.5rem 0;
+      border-radius: 3rem;
+      transition: .2s;
+      letter-spacing: 2px;
+      user-select: none;
+      &.router-link-exact-active {
+        background-color: #f1f1ff;
+      }
+      &:hover {
+        background-color: #e5e5ff
+      }
+    }
+  }
+}
+@media (max-width: 750px) {
+  #app {
+    display: flex;
+    flex-direction: column;
+  }
+  #nav {
+    position: relative;
+    padding-bottom: 1rem;
+    width: 100%;
+    height: 3rem;
+    background-color: #fff;
+    border-top: 1px solid #eee;
+    z-index: 1;
+    #nav-content {
+      display: flex;
+      a {
+        flex: 1 1 auto;
+        height: 100%;
+        line-height: 3rem;
+        display: inline-block;
+        transition: .3s;
+        border-radius: 1rem;
+        font-family: 'Courier';
+      }
+      a.router-link-exact-active {
+        font-weight: bold;
+      }
+    }
+  }
+}
+</style>
