@@ -7,21 +7,21 @@
             <textarea class='item' id='title' v-model='title' placeholder="title"></textarea>
             <textarea class='item' id='description' v-model='description' laceholder="描述"></textarea>
             <div class='item' id='styling'>
-              <btn :content='"bold"' :size='0' @click.native='makeBold'></btn>
-              <btn :content='"h4"' :size='0' @click.native='makeH4'></btn>
-              <btn :content='"正文"' :size='0' @click.native='makeNormal'></btn>
+              <btn :size='0' @click='makeBold'>bold</btn>
+              <btn @click='makeH4'>h4</btn>
+              <btn @click='makeNormal'>正文</btn>
               <span v-if='setWidth.target' id='set-width'>
                 <label for='set-width'>设置图片宽度</label>
                 <input v-model='setWidth.width'>
-                <btn :content='"确认"' :size='0' @click.native='setImgWidth'></btn>
+                <btn :size='0' @click='setImgWidth'>确认</btn>
               </span>
             </div>
             <div class='item' id='content' ref='content' contenteditable="true"
               placehoder='content' v-html='content'>
             </div>
             <div class='actions'>
-              <btn :content='"发布"' @click.native='publish()'></btn>
-              <btn :content='"删除"' @click.native='deletePost()'></btn>
+              <btn @click='publish()'>发布</btn>
+              <btn @click='deletePost()' :type='"warning"'>删除</btn>
             </div>
           </template>
         </list>
@@ -45,10 +45,10 @@
             <div class='item' id='file-uploader'>
               <label>
                 <input id='input-file' type="file" accept="image/*" @change="selectImage" ref='uploader'>
-                <btn :content='"选择"'></btn>
+                <btn>选择</btn>
               </label>
               <span>{{ fileMessage }}</span>
-              <btn id='upload' :content='"上传"' @click.native='upload'></btn>
+              <btn id='upload' @click='upload'>上传</btn>
               <div id='preview' v-if='preview.data'>
                 <img :src='preview.data'>
                 <span>{{ preview.blob.name }}</span>
@@ -80,8 +80,8 @@ import Layout from '@/components/Layout.vue'
 import List from '@/components/List.vue'
 import Rbox from '@/components/Rbox.vue'
 import { request } from '@/shared/Request'
-import ButtonVue from '../components/Button.vue'
-import { getNowString, fileBuffer2base64, readFile } from '@/shared/helper'
+import { Button } from '@/components/Button.js'
+import { getNowString, readFile } from '@/shared/helper'
 import { ip } from '@/shared/config'
 
 export default {
@@ -109,7 +109,7 @@ export default {
     'layout': Layout,
     'list': List,
     'rbox': Rbox,
-    'btn': ButtonVue,
+    'btn': Button,
   },
   computed: {
     userInfo () {
@@ -123,6 +123,9 @@ export default {
     autoSaveStatus () {
       return this.autoSaveHandler ? '每60s' : 'ERR: autoSave undefined'
     },
+  },
+  async beforeRouteEnter (to, from, next) {
+    from.name ? next() : next('/profile')
   },
   async beforeRouteLeave (to, from, next) {
     this.disableAutoSave()
@@ -143,7 +146,7 @@ export default {
         let [_, post] = [await catsPromise, await postPromise]
         this.initSetData(post_id, post)
       } else {
-        let newPost = request(`post`, 'POST')
+        let newPost = await request(`post`, 'POST')
         this.postId = newPost._id
       }
     },
@@ -340,6 +343,9 @@ export default {
     }
   }
   .actions {
+    div {
+      margin: 0 1rem;
+    }
     padding: .5rem 0;
   }
   .active {

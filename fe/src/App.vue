@@ -1,61 +1,44 @@
 <template>
   <div id="app">
+    <theme-provider :theme="getTheme">
     <keep-alive include="home,twit,playground,profile" exclude="edit">
       <router-view/>
     </keep-alive>
     <pop></pop>
     <div id="nav">
       <ul id="nav-content">
-        <router-link to="/">{{titleHome}}</router-link>
-        <router-link to="/twit">{{titleTwit}}</router-link>
-        <router-link to="/playground">{{titleTool}}</router-link>
-        <router-link to="/profile">{{titleAbout}}</router-link>
+        <router-link to="/">文章</router-link>
+        <router-link to="/twit">发言</router-link>
+        <router-link to="/playground">游乐园</router-link>
+        <router-link to="/profile">账户</router-link>
       </ul>
     </div>
+    </theme-provider>
   </div>
 </template>
 
 <script>
 import Pop from '@/components/Pop'
 import { request } from './shared/Request'
+import { ThemeProvider } from 'vue-styled-components'
+import { theme } from '@/shared/theme.js'
+
 export default {
   data () {
     return {
-      transitionName: ''
+      transitionName: '',
+      theme: theme,
+      use_theme: 'light',
     }
   },
   components: {
-    Pop
+    Pop,
+    'theme-provider': ThemeProvider
   },
   computed: {
-    titleHome () {
-      return '文章'
+    getTheme () {
+      return this.theme[this.use_theme]
     },
-    titleTwit () {
-      return '发言'
-    },
-    titleTool () {
-      return '游乐园'
-    },
-    titleAbout () {
-      return '账户'
-    },
-  },
-  watch: {
-    '$route' (to, from) {
-      const routelist = ['home', 'twit', 'tool', 'about']
-      if (to.name === 'art') {
-        this.transitionName = 'slide-left'
-      } else if (from.name === 'art') {
-        this.transitionName = 'slide-right'
-      } else if (routelist.indexOf(from.name) > routelist.indexOf(to.name)){
-        this.transitionName = 'slide-down'
-      } else {
-        this.transitionName = 'slide-up'
-      }
-    }
-  },
-  created () {
   },
   mounted () {
     this.loginTransaction()

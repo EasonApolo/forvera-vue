@@ -1,5 +1,5 @@
 <template>
-  <div class='profile'>
+  <div class='profile' @keyup.enter="login()">
     <layout>
       <template #main>
         <list>
@@ -10,21 +10,21 @@
               <div class='item hint' v-if="loginHint">{{ loginHint }}
               </div>
               <div class='item actions'>
-                <btn :content='"注册"' @click.native='register()'></btn>
-                <btn :content='"登录"' @click.native='login()'></btn>
+                <btn @click='register()'>注册</btn>
+                <btn @click='login()'>登录</btn>
               </div>
             </template >
             <template  v-else>
               <div class='item'> {{ userInfo.username }}</div>
               <div class='item actions'>
-                <btn :content='"写"' @click.native='toEdit()'></btn>
-                <btn :content='"分类"' @click.native='toCats()'></btn>
+                <btn @click='toEdit()'>写</btn>
+                <btn @click='toCats()'>分类</btn>
               </div>
               <div class='item hint' v-if="posts.length <= 0">还没有发表过文章</div>
               <div class='item' v-else v-for='post in posts' :key='post.id'>
                 <span>{{ post.title }}</span>
                 <span class='badge'>{{ postStatus(post.status) }}</span>
-                <btn class='to-right' :content='"编辑"' @click.native='edit(post)' :size='0'></btn>
+                <btn class='to-right' @click='edit(post)' :size='0'>编辑</btn>
               </div>
             </template >
           </template>
@@ -45,7 +45,7 @@ import Layout from '@/components/Layout.vue'
 import Rbox from '@/components/Rbox.vue'
 import List from '@/components/List.vue'
 import Loading from '@/components/Loading.vue'
-import ButtonVue from '../components/Button.vue'
+import { Button } from '../components/Button.js'
 import { request } from '@/shared/Request'
 import { mapGetters, mapState } from 'vuex'
 import { getPostStatus } from '@/shared/dataMap'
@@ -65,12 +65,14 @@ export default {
     'layout': Layout,
     'list': List,
     'rbox': Rbox,
-    'btn': ButtonVue
+    'btn': Button
   },
   created () {
   },
+  beforeRouteEnter (to, from, next) {
+    next(vm => vm.init())
+  },
   mounted () {
-    if (this.loginStatus) this.init()
   },
   computed: {
     loginStatus () { return this.$store.state.login },
@@ -81,8 +83,10 @@ export default {
   },
   methods: {
     init () {
-      this.getAndSetUserInfo()
-      this.getPosts()
+      if (this.loginStatus) {
+        this.getAndSetUserInfo()
+        this.getPosts()
+      }
     },
     inputHandler () {
       this.loginHint = undefined
