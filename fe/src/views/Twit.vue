@@ -1,9 +1,11 @@
 <template>
   <div id='twit'>
     <layout>
+
       <template #main>
         <list :loading=intSwitch>
           <template #list>
+
             <div id='new-twit'>
               <div id='new-twit-input'>
                 <pre id='support' v-text='contentInPre'></pre>
@@ -19,17 +21,18 @@
                   <input id='input-file' ref='inputFile' type="file" accept="image/*" @change="selectImage" multiple>
                   <btn @click='selectImageTrigger'>选择</btn>
                 </label>
-                <btn @click='send()'><pro :progress='twitProgress'></pro>发送</btn>
+                <btn @click='send()'><pro :progress='twit.sendProgress'></pro>发送</btn>
                 <span>{{ userInfo.username }}</span>
               </div>
             </div>
-            <div class="item" v-for="(item, index) in data" :key="index">
+
+            <div class="item" v-for="(twit, index) in data" :key="index">
               <div class='meta'>
-                <div class="name">{{item.author_name}}</div>
-                <div class="date">{{slicedDate(item.date)}}</div>
+                <div class="name">{{twit.user.username}}</div>
+                <div class="date">{{twit.created_time}}</div>
               </div>
-              <div class="content" v-html="item.content.rendered" @click="clickbub($event)"></div>
-              <div class="opmenu">
+              <div class="content">{{twit.content}}</div>
+              <!-- <div class="opmenu">
                 <div class='comments' @click='setReplyTo(item)'>
                   <div class='icon' style='width:1.25rem'><svg viewBox="0 0 24 24"><path fill='#ccc' d='M14.046 2.242l-4.148-.01h-.002c-4.374 0-7.8 3.427-7.8 7.802 0 4.098 3.186 7.206 7.465 7.37v3.828c0 .108.044.286.12.403.142.225.384.347.632.347.138 0 .277-.038.402-.118.264-.168 6.473-4.14 8.088-5.506 1.902-1.61 3.04-3.97 3.043-6.312v-.017c-.006-4.367-3.43-7.787-7.8-7.788zm3.787 12.972c-1.134.96-4.862 3.405-6.772 4.643V16.67c0-.414-.335-.75-.75-.75h-.396c-3.66 0-6.318-2.476-6.318-5.886 0-3.534 2.768-6.302 6.3-6.302l4.147.01h.002c3.532 0 6.3 2.766 6.302 6.296-.003 1.91-.942 3.844-2.514 5.176z'></path></svg></div>
                   <div class='num'>{{item.child.length === 0 ? '' : item.child.length}}</div>
@@ -51,11 +54,13 @@
                   <div class="date">{{slicedDate(child.date)}}</div>
                 </div>
                 <div class="content" v-html="child.content.rendered" @click="clickbub($event)"></div>
-              </div>
+              </div> -->
             </div>
+
           </template>
         </list>
       </template>
+
       <template #right>
         <rbox :title='"回复"'>
           <template #list>
@@ -90,8 +95,10 @@ export default {
         files: [],
         parent: null,
         ancestor: null,
+        sendProgress: 0,
       },
-      twitProgress: 0,
+      data: [],
+      curPage: 0,
       intSwitch: 0,
       mainNode: undefined,
       listNode: undefined,
@@ -127,7 +134,7 @@ export default {
     'pro': Progress,
   },
   created () {
-    this.fetchComment(1)
+    this.fetchTwits(this.curPage)
     this.setDevice()
     window.addEventListener('resize', () => {
       this.setDevice()
@@ -175,7 +182,7 @@ export default {
       this.$refs.inputFile.click()
     },
     async selectImage () {
-      if (!this.$refs.inputFile.files?.length && this.twit.files.length >= 9) return
+      if (!this.$refs.inputFile.files?.length && this.twit.files.length >= 3) return
       const inputFiles = [...this.$refs.inputFile.files]
       let fileObjs = await Promise.all(
         inputFiles.map(
@@ -224,7 +231,7 @@ export default {
       if (this.$route.path != '/twit') return
       if (this.intSwitch == 0 && this.mainNode.scrollTop + this.mainNode.clientHeight >= this.listNode.clientHeight + 48) {
         let pageToFetch = Math.ceil(this.data.length / 10.0 + 1)
-        this.fetchComment(pageToFetch)
+        this.fetchTwits(pageToFetch)
       }
     },
     clickbub (e) {
@@ -249,23 +256,27 @@ export default {
       this.data = []
       this.max_page = 1000
     },
-    fetchComment (page) {
-      if (page > this.max_page) return    // reject request if page beyond max_page
-      this.intSwitch = 1
-      fetch(window.ip + 'comments?post=' + 53 + '&page=' + page + '&parent=0')
-      .then(res => {
-        return res.json()
-      }).then(json => {
-        if (json.length == 0) {
-          this.max_page = page - 1
-        }
-        json.map(v => {v.child = []})
-        this.data = this.data.concat(json)
-        this.intSwitch = 0
-        let allparent = json.map(v => v.id)
-        this.fetchChildComments(allparent)
-        this.fetchReact()
+    async fetchTwits (page) {
+      let twits = await request(`twit/${ page }`)
+      twits.map(t => {
+        const date = new Date(t.created_time)
+        t.created_time = `${ date.toLocaleDateString() } ${ date.toLocaleTimeString(undefined, {hour12: false}) }`
       })
+      this.data.push(...twits)
+      // fetch(window.ip + 'comments?post=' + 53 + '&page=' + page + '&parent=0')
+      // .then(res => {
+      //   return res.json()
+      // }).then(json => {
+      //   if (json.length == 0) {
+      //     this.max_page = page - 1
+      //   }
+      //   json.map(v => {v.child = []})
+      //   this.data = this.data.concat(json)
+      //   this.intSwitch = 0
+      //   let allparent = json.map(v => v.id)
+      //   this.fetchChildComments(allparent)
+      //   this.fetchReact()
+      // })
     },
     fetchChildComments (allparent) {
       fetch(window.ip + 'comments?post=' + 53 + '&parent=' + allparent.join(','))
@@ -290,12 +301,12 @@ export default {
         this.$store.commit('notify', { content: '内容不能为空' }); return;
       }
       this.$store.commit('notify', { content: '发送中' })
-      let form = new FormData()
-      form.append('content', t.content)
-      if (t.files.length > 0)form.append('files', [])
-      if (t.parent) form.append('parent', null)
-      if (t.ancestor) form.append('ancestor', undefined)
-      let res = await request('twit', 'POST', form)
+      let fd = new FormData()
+      fd.append('content', t.content)
+      t.files.map(f => fd.append('files', f.blob))
+      if (t.parent) fd.append('parent', null)
+      if (t.ancestor) fd.append('ancestor', undefined)
+      let res = await request('twit', 'POST', fd)
       console.log(res)
       this.$store.commit('notify', { content: '发送成功' })
       // fetch(window.ip + 'comments', {
@@ -326,7 +337,7 @@ export default {
       margin: 0;
       padding: 1rem 2rem;
       min-height: 1.25rem;
-      // visibility: hidden;
+      visibility: hidden;
       border-top: 1px solid transparent;
       word-wrap: break-word;
       white-space: pre-wrap;
@@ -354,7 +365,6 @@ export default {
       width: 33.3%;
       height: 0;
       padding-bottom: 33.3%;
-      text-align: center;
       overflow: hidden;
       img {
         width: 95%;
