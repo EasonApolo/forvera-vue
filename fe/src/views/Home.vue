@@ -4,7 +4,7 @@
       <template #main>
         <list :loading='locked'>
           <template #list>
-            <div class="item" v-for="p in posts" :key="p._id" @click="toPost(p._id)">
+            <div class="item hover" v-for="p in posts" :key="p._id" @click="toPost(p._id)">
               <div class="title">
                 <span v-html='p.title'></span>
                 <span class="time">{{ slicedDate(p.updated_time) }}</span>

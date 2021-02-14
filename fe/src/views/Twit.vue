@@ -4,7 +4,26 @@
       <template #main>
         <list :loading=intSwitch>
           <template #list>
-            <div class="item" v-for="(item, index) in data" :key="index" :class='template(item)'>
+            <div id='new-twit'>
+              <div id='new-twit-input'>
+                <pre id='support' v-text='contentInPre'></pre>
+                <textarea id='input' class='item' v-model='twit.content' placeholder="content"></textarea>
+              </div>
+              <div id='preview' class='item' v-if='twit.files.length'>
+                <div class='preview-item' v-for="file in twit.files" :key=file.name>
+                  <img :src='file.data'>
+                </div>
+              </div>
+              <div class='item'>
+                <label>
+                  <input id='input-file' ref='inputFile' type="file" accept="image/*" @change="selectImage" multiple>
+                  <btn @click='selectImageTrigger'>选择</btn>
+                </label>
+                <btn @click='send()'><pro :progress='twitProgress'></pro>发送</btn>
+                <span>{{ userInfo.username }}</span>
+              </div>
+            </div>
+            <div class="item" v-for="(item, index) in data" :key="index">
               <div class='meta'>
                 <div class="name">{{item.author_name}}</div>
                 <div class="date">{{slicedDate(item.date)}}</div>
@@ -45,11 +64,6 @@
             <div class='item replyto' v-show="toParent != 0" @click='toParent=0'>回复给<i>{{toParentName}}</i><br>（点击取消）</div>
             <!-- <button class="close" v-show="addOpen" @click="addOpen=false"></button> -->
             <div class='item plain'><button @click="send"></button></div>
-            <rbox :title='"preset titles:"'>
-              <template #list>
-                <div class='item' v-for='(t, index) in templates' :key='index' @click='name=t'>{{t}}</div>
-              </template>
-            </rbox>
           </template>
         </rbox>
       </template>
@@ -62,10 +76,22 @@ import Layout from '@/components/Layout.vue'
 import Rbox from '@/components/Rbox.vue'
 import List from '@/components/List.vue'
 import Loading from '@/components/Loading.vue'
+import { Button, Progress } from '@/components/Button.js'
+import { mapGetters } from 'vuex'
+import { readFile } from '@/shared/helper'
+import { request } from '../shared/Request'
+
 export default {
   name: 'twit',
   data () {
     return {
+      twit: {
+        content: '',
+        files: [],
+        parent: null,
+        ancestor: null,
+      },
+      twitProgress: 0,
       intSwitch: 0,
       mainNode: undefined,
       listNode: undefined,
@@ -91,13 +117,14 @@ export default {
         'tt': '🍭',
         'qq': '😘'
       },
-      templates: ['#Changing', '#日常', '#今日不平常', '#？', '#朝花夕拾', '#feel low']
     }
   },
   components: {
     'layout': Layout,
     'rbox': Rbox,
     'list': List,
+    'btn': Button,
+    'pro': Progress,
   },
   created () {
     this.fetchComment(1)
@@ -105,7 +132,6 @@ export default {
     window.addEventListener('resize', () => {
       this.setDevice()
     })
-    setInterval(this.autoSave, 5000)
   },
   mounted () {
     this.mainNode = document.getElementsByClassName('main')[0]
@@ -113,35 +139,28 @@ export default {
     this.listNode = document.getElementsByClassName('list')[0]
   },
   computed: {
-    template: function () {
-      return function (item) {
-        switch (item.author_name) {
-          case '#Changing': return {'changing': true}; break;
-          case '#日常': return {'nichijou': true}; break;
-          case '#今日不平常': return {'special': true}; break;
-          case '#？': return {'what': true}; break;
-          case '#朝花夕拾': return {'recorder': true}; break;
-          case '#feel low': return {'feellow': true}; break;
-        }
-      }
+    contentInPre () {
+      // I met strange problem, last newline in PRE not showing, so add an extra newline manually.
+      return this.twit.content + '\n'
     },
-    toParentName: function () {
+    toParentName () {
       let item = this.data.find(v => v.id === this.toParent)
       return item === undefined ? '' : item.author_name
     },
-    itemReact: function () {
+    userInfo () { return this.$store.getters.userInfo },
+    itemReact () {
       return (item) => {
         let pair = this.reactdata.find(v => v.id == item.id)  // v.id is str, use ==
         return pair === undefined ? [] : pair.react
       }
     },
-    slicedContent: function () {
+    slicedContent () {
       return function (content) {
         let plain = content.replace(/<[^>]*>/g, '')
         return plain
       }
     },
-    slicedDate: function () {
+    slicedDate () {
       return function (d) {
         let ds = d.split(/[-T:]/)
         ds[0] = ds[0].slice(2, 4)
@@ -152,10 +171,21 @@ export default {
     },
   },
   methods: {
-    autoSave () {
-      this.name.length > 0 && (localStorage.autosavename = this.name)
-      this.content.length > 0 && (localStorage.autosavecontent = this.content)
-      
+    selectImageTrigger () {
+      this.$refs.inputFile.click()
+    },
+    async selectImage () {
+      if (!this.$refs.inputFile.files?.length && this.twit.files.length >= 9) return
+      const inputFiles = [...this.$refs.inputFile.files]
+      let fileObjs = await Promise.all(
+        inputFiles.map(
+          async f => {
+            return { data: await readFile(f), blob: f }
+          }
+        )
+      )
+      console.log(fileObjs)
+      this.twit.files.push(...fileObjs)
     },
     fetchReact () {
       fetch(window.domain + '/react/react.php')
@@ -254,39 +284,89 @@ export default {
         })
       })
     },
-    send () {
-      if (this.content == '' || this.name == '') {
-        this.$bus.$emit('pop', '至少填个空格嗷')
-        return
+    async send () {
+      let t = this.twit
+      if (t.content == '') {
+        this.$store.commit('notify', { content: '内容不能为空' }); return;
       }
-      this.$bus.$emit('pop', '发送中...')
-      this.intSwitch = 1
+      this.$store.commit('notify', { content: '发送中' })
       let form = new FormData()
-      form.append('author_name', this.name)
-      form.append('content', this.content)
-      form.append('parent', this.toParent)
-      form.append('post', 53)
-      form.append('author_email', '787817128@qq.com')
-      fetch(window.ip + 'comments', {
-        method: 'POST',
-        body: form
-      }).then(() => {
-        this.toParent = 0
-        this.addOpen = false
-        this.clearComment()
-        this.$bus.$emit('pop', '已发送')
-        this.intSwitch = 1
-        this.fetchComment(1)
-      })
+      form.append('content', t.content)
+      if (t.files.length > 0)form.append('files', [])
+      if (t.parent) form.append('parent', null)
+      if (t.ancestor) form.append('ancestor', undefined)
+      let res = await request('twit', 'POST', form)
+      console.log(res)
+      this.$store.commit('notify', { content: '发送成功' })
+      // fetch(window.ip + 'comments', {
+      //   method: 'POST',
+      //   body: form
+      // }).then(() => {
+      //   this.toParent = 0
+      //   this.addOpen = false
+      //   this.clearComment()
+      //   this.$bus.$emit('pop', '已发送')
+      //   this.intSwitch = 1
+      //   this.fetchComment(1)
+      // })
     }
   }
 }
 </script>
 
 <style scoped lang="scss">
+#new-twit {
+  .item {
+    border: none;
+    border-top: 1px solid #eee;
+  }
+  #new-twit-input {
+    position: relative;
+    #support {
+      margin: 0;
+      padding: 1rem 2rem;
+      min-height: 1.25rem;
+      // visibility: hidden;
+      border-top: 1px solid transparent;
+      word-wrap: break-word;
+      white-space: pre-wrap;
+      font-size: .875rem;
+      text-align: left;
+      font-family: inherit;
+      line-height: 1.25rem;
+    }
+    #input {
+      position: absolute;
+      left: 0;
+      top: 0;
+      right: 0;
+      border-bottom: none;
+      height: calc(100% - 2rem - 1px);
+      overflow: hidden;
+    }
+  }
+  #preview {
+    display: flex;
+    width: calc(100% - 4rem);
+    flex-wrap: wrap;
+    .preview-item {
+      flex: 0 0 auto;
+      width: 33.3%;
+      height: 0;
+      padding-bottom: 33.3%;
+      text-align: center;
+      overflow: hidden;
+      img {
+        width: 95%;
+      }
+    }
+  }
+  #input-file {
+    display: none;
+  }
+}
 .item {
   padding: 1rem 2rem;
-  border-top: 1px solid #eee;
   background-repeat: no-repeat;
   &:hover {
     background-color: #fafafa;

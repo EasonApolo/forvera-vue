@@ -1,18 +1,19 @@
 <template>
   <div id="app">
     <theme-provider :theme="getTheme">
-    <keep-alive include="home,twit,playground,profile" exclude="edit">
-      <router-view/>
-    </keep-alive>
-    <pop></pop>
-    <div id="nav">
-      <ul id="nav-content">
-        <router-link to="/">文章</router-link>
-        <router-link to="/twit">发言</router-link>
-        <router-link to="/playground">游乐园</router-link>
-        <router-link to="/profile">账户</router-link>
-      </ul>
-    </div>
+      <notify :content='"给劲"'></notify>
+      <keep-alive include="home,twit,playground,profile" exclude="edit">
+        <router-view/>
+      </keep-alive>
+      <pop></pop>
+      <div id="nav">
+        <ul id="nav-content">
+          <router-link to="/">文章</router-link>
+          <router-link to="/twit">发言</router-link>
+          <router-link to="/playground">游乐园</router-link>
+          <router-link to="/profile">账户</router-link>
+        </ul>
+      </div>
     </theme-provider>
   </div>
 </template>
@@ -22,6 +23,7 @@ import Pop from '@/components/Pop'
 import { request } from './shared/Request'
 import { ThemeProvider } from 'vue-styled-components'
 import { theme } from '@/shared/theme.js'
+import Notify from '@/components/Notify.vue'
 
 export default {
   data () {
@@ -33,7 +35,8 @@ export default {
   },
   components: {
     Pop,
-    'theme-provider': ThemeProvider
+    'theme-provider': ThemeProvider,
+    'notify': Notify
   },
   computed: {
     getTheme () {
@@ -50,6 +53,8 @@ export default {
       console.log(`[App] startup login status: ${status}`)
       if (status) {
         this.$store.commit('login', true)
+        let userInfo = await request('user/info', 'POST')
+        this.$store.commit('setUserInfo', userInfo)
       }
     },
     async checkStatus () {
@@ -98,7 +103,7 @@ ul {
 #app {
   position: relative;
   margin: 0 auto;
-  max-width: 1000px;
+  max-width: 1080px;
   height: 100%;
   text-align: center;
   color: #2c3e50;
@@ -126,7 +131,7 @@ ul {
 @media (min-width: 750px) {
   #nav {
     position: absolute;
-    padding: 3rem 2rem 0 0;
+    padding: 3rem 2rem 0 2rem;
     top: 0;
     left: 0;
     height: calc(100% - 3rem);

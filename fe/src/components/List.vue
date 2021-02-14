@@ -7,6 +7,7 @@
 
 <script>
 import Loading from '@/components/Loading.vue'
+
 export default {
   name: 'List',
   props: ['loading'],
@@ -16,7 +17,7 @@ export default {
     }
   },
   components: {
-    Loading
+    Loading,
   },
   mounted () {
   },
@@ -62,9 +63,6 @@ export default {
   text-align: left;
   transition: all .3s;
   cursor: pointer;
-  &:hover {
-    background-color: #f6f6f6;
-  }
   .title {
     line-height: 1.5rem;
     font-size: 1rem;
@@ -85,16 +83,19 @@ export default {
     color: #555;
     word-wrap: break-word;
   }
+  &.hover:hover {
+    background-color: #f6f6f6;
+  }
 }
 .item-child {
   margin-top: 1rem;
   padding-bottom: 0;
   border-bottom: 0;
 }
-.list > .item {
+.list .item {
   border-top: 1px solid #eee;
 }
-.list > .item ~ .item {
+.list .item ~ .item {
   border-top: none;
 }
 

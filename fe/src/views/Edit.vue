@@ -7,13 +7,15 @@
             <textarea class='item' id='title' v-model='title' placeholder="title"></textarea>
             <textarea class='item' id='description' v-model='description' laceholder="描述"></textarea>
             <div class='item' id='styling'>
-              <btn :size='0' @click='makeBold'>bold</btn>
-              <btn @click='makeH4'>h4</btn>
-              <btn @click='makeNormal'>正文</btn>
-              <span v-if='setWidth.target' id='set-width'>
+              <btn :size=0 @click='makeBold'>bold</btn>
+              <div class='btn-group'>
+                <btn :size=0 :mr=0.25 @click='makeH4'>h4</btn>
+                <btn :size=0 :mr=0 @click='makeNormal'>main</btn>
+              </div>
+              <span v-if='setWidth.target' id='set-width' class='btn-group'>
                 <label for='set-width'>设置图片宽度</label>
                 <input v-model='setWidth.width'>
-                <btn :size='0' @click='setImgWidth'>确认</btn>
+                <btn :size=0 :mr=0 @click='setImgWidth'>ok</btn>
               </span>
             </div>
             <div class='item' id='content' ref='content' contenteditable="true"
@@ -21,7 +23,7 @@
             </div>
             <div class='actions'>
               <btn @click='publish()'>发布</btn>
-              <btn @click='deletePost()' :type='"warning"'>删除</btn>
+              <btn @click='deletePostHandler()' :type='"warning"'>删除</btn>
             </div>
           </template>
         </list>
@@ -44,8 +46,8 @@
           <template #list>
             <div class='item' id='file-uploader'>
               <label>
-                <input id='input-file' type="file" accept="image/*" @change="selectImage" ref='uploader'>
-                <btn>选择</btn>
+                <input id='input-file' ref='inputFile' type="file" accept="image/*" @change="selectImage">
+                <btn @click='selectImageTrigger'>选择</btn>
               </label>
               <span>{{ fileMessage }}</span>
               <btn id='upload' @click='upload'>上传</btn>
@@ -63,8 +65,8 @@
           </template>
         </rbox>
         <rbox title='自动保存'>
+          <template #sup>{{autoSaveStatus}}</template>
           <template #list>
-            <div class='item'>{{autoSaveStatus}}</div>
             <div v-for='(s, index) in saves' :key='index'
               class='item' @click='recover(s)'>{{s.time}}
             </div>
@@ -123,6 +125,9 @@ export default {
     autoSaveStatus () {
       return this.autoSaveHandler ? '每60s' : 'ERR: autoSave undefined'
     },
+    noteStatus () {
+      return this.$store.state.note
+    }
   },
   async beforeRouteEnter (to, from, next) {
     from.name ? next() : next('/profile')
@@ -164,6 +169,7 @@ export default {
     async publish () {
       let content = this.$refs.content.innerHTML
       if (this.title.length < 1 || this.content.length < 1) return
+      this.$store.commit('notify', { content: '发布中' })
       const selectedCats = this.cats.filter(c => c.active)
       let payload = {
         title: this.title, description: this.description,
@@ -172,7 +178,12 @@ export default {
       }
       // request
       let res = await request(`post/${ this.postId }`, 'PUT', JSON.stringify(payload))
+      this.$store.commit('notify', { content: '发布成功' })
       this.$router.push({ path: 'profile'})
+    },
+    async deletePostHandler () {
+      this.$store.commit('notify', { content: '确定要删除吗？', confirm: false, name: 'deletePost' })
+      console.log(`Edit: commit notify: `, this.$store.state.note)
     },
     async deletePost () {
       let res = await request(`post/${ this.postId }`, 'DELETE')
@@ -212,6 +223,9 @@ export default {
      */
     createFileObj (blob, base64) {
       return { name: blob.name || blob.originalname, data: base64, blob }
+    },
+    selectImageTrigger () {
+      this.$refs.inputFile.click()
     },
     async selectImage (e) {
       this.fileMessage = ''
@@ -300,8 +314,15 @@ export default {
     'setWidth.target' () {
       if (this.setWidth.target) {
         this.setWidth.width = this.setWidth.target.clientWidth
-        console.log(this.setWidth)
       }
+    },
+    'noteStatus': {
+      handler: function () {
+        if (this.noteStatus.confirm && this.noteStatus.name == 'deletePost') {
+          this.$store.commit('clearNote')
+          this.deletePost()
+        }
+      }, deep: true
     }
   }
 }
@@ -320,6 +341,17 @@ export default {
     height: $lh*1;
   }
   #styling {
+    position: sticky;
+    top: 0rem;
+    background-color: white;
+    .btn-group {
+      display: inline-block;
+      margin-right: 1rem;
+
+      padding: .25rem .5rem;
+      border-radius: .25rem;
+      background-color: #eee;
+    }
     .button {
       margin-right: .5rem;
     }
@@ -327,8 +359,11 @@ export default {
       font-size: .75rem;
       input {
         display: inline-block;
-        width: 3rem;
-        background-color: #eee;
+        margin: 0 .25rem;
+        padding: 0 .25rem;
+        width: 2rem;
+        border-radius: .25rem;
+        background-color: #ddd;
       }
     }
   }

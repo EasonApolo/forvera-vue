@@ -5,19 +5,20 @@
         <list>
           <template #list>
             <template  v-if="!loginStatus">
-              <input class='item' v-model="username" placeholder="username" @change='inputHandler'>
-              <input class='item' v-model='password' placeholder="password" type='password' @change='inputHandler'>
-              <div class='item hint' v-if="loginHint">{{ loginHint }}
-              </div>
+              <input class='item' v-model="username" placeholder="username">
+              <input class='item' v-model='password' placeholder="password" type='password'>
               <div class='item actions'>
                 <btn @click='register()'>注册</btn>
                 <btn @click='login()'>登录</btn>
               </div>
             </template >
             <template  v-else>
-              <div class='item'> {{ userInfo.username }}</div>
+              <div class='item'>
+                <span>{{ userInfo.username }}</span>
+                <btn id='btn-logout' :mr=0 @click='logout'>登出</btn>
+              </div>
               <div class='item actions'>
-                <btn @click='toEdit()'>写</btn>
+                <btn @click='toEdit()'>写作</btn>
                 <btn @click='toCats()'>分类</btn>
               </div>
               <div class='item hint' v-if="posts.length <= 0">还没有发表过文章</div>
@@ -56,7 +57,6 @@ export default {
     return {
       username: '',
       password: '',
-      loginHint: '',
       posts: '',
     }
   },
@@ -88,9 +88,6 @@ export default {
         this.getPosts()
       }
     },
-    inputHandler () {
-      this.loginHint = undefined
-    },
     async register () {
       let payload = { username: this.username, password: this.password }
       const res = await request('auth/register', 'POST', JSON.stringify(payload))
@@ -102,16 +99,23 @@ export default {
     },
     login () {
       let payload = { username: this.username, password: this.password }
+      this.$store.commit('notify', { content: '登录中' })
       request('auth/login', 'POST', JSON.stringify(payload))
       .then(res => {
         if (res.statusCode == 200) {
           this.loginSuccessHandler(res)
         } else {
-          this.loginHint = `ERR: ${ res.message }`
+          this.$store.commit('notify', { content: `ERR: ${ res.message }`, type: 'warning' })
         }
       })
     },
+    logout () {
+      this.$store.commit('setToken', undefined)
+      this.$store.commit('login', false)
+      this.$store.commit('notify', { content: '已登出' })
+    },
     async loginSuccessHandler (userInfo) {
+      this.$store.commit('notify', { content: '登录成功' })
       this.$store.commit('login', true)
       const newToken = `Bearer ${userInfo.token}`
       this.$store.commit('setToken', newToken)
@@ -141,6 +145,7 @@ export default {
     loginStatus (newStatus, oldStatus) {
       if (newStatus) {
         this.init()
+        this.getAndSetUserInfo()
       }
     }
   }
@@ -152,6 +157,9 @@ export default {
   font-size: .5rem;
   color: rgb(253, 121, 121)
 }
+#btn-logout {
+  float: right;
+}
 .badge {
   margin-left: 1rem;
   padding: .125rem .5rem;
@@ -161,7 +169,6 @@ export default {
   color: #888;
 }
 .actions {
-  text-align: center;
   & div {
     margin: 0 .5rem;
   }

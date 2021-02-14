@@ -11,10 +11,11 @@ import { CategoryModule } from './category/category.module';
 import { FileModule } from './file/file.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { staticPath } from './shared/staticPath';
+import { TwitModule } from './twit/twit.module';
 
 @Module({
   imports: [
-    MongooseModule.forRoot('mongodb://localhost/nest-blog', { useNewUrlParser: true }),
+    MongooseModule.forRoot('mongodb://localhost/forvera', { useNewUrlParser: true }),
     PostModule,
     AuthModule,
     UsersModule,
@@ -23,6 +24,7 @@ import { staticPath } from './shared/staticPath';
     ServeStaticModule.forRoot({
       rootPath: staticPath,
     }),
+    TwitModule,
   ],
   controllers: [AppController],
   providers: [

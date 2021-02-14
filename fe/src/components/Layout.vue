@@ -20,19 +20,19 @@ export default {
 
 <style scoped lang="scss">
 .container {
-  margin: 0 0 0 11rem;
+  margin: 0 0 0 13rem;
   height: 100vh;
   .main {
     position: relative;
     height: calc(100% - 3rem);
-    margin-right: 16rem;
+    margin-right: 18rem;
     padding-bottom: 3rem;
     border-right: 1px solid #eee;
     overflow-y: auto;
     overflow-x: hidden;
   }
   .right {
-    margin-left: 2rem;
+    padding: 3rem 2rem 0 2rem;
     height: calc(100% - 3rem);
     position: absolute;
     right: 0;

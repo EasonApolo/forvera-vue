@@ -9,7 +9,8 @@ export const store = new Vuex.Store({
     login: false,
     user: {
       info: {}
-    }
+    },
+    note: {}
   },
   mutations: {
     setToken (state, newToken) {
@@ -21,11 +22,24 @@ export const store = new Vuex.Store({
     },
     setUserInfo (state, userInfo) {
       state.user.info = userInfo
+    },
+
+    // note
+    notify (state, _note) {
+      state.note = _note
+    },
+    clearNote (state) {
+      state.note = {}
+    },
+    confirm (state) {
+      if (state.note.name) {
+        state.note.confirm = true
+      } else console.log(`ERR: vuex confirm: note ${state.note} has no name.`)
     }
   },
   getters: {
     userInfo: state => {
       return state.user.info
-    }
+    },
   }
 })

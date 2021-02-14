@@ -1,6 +1,9 @@
 <template>
   <div class="rbox" :class='{expand:expand}'>
-    <div class='title' @click='expand=!expand'>{{title}}</div>
+    <div class='head' @click='expand=!expand'>
+      <span class='title'>{{title}}</span>
+      <slot name='sup'></slot>
+    </div>
     <slot name='list'></slot>
   </div>
 </template>
@@ -24,9 +27,14 @@ export default {
   background-color: #f6f6fc;
   text-align: left;
   overflow: hidden;
-  .title {
+  .head {
     padding: 1rem;
-    font-weight: bold;
+    font-size: .875rem;
+    .title {
+      font-size: 1rem;
+      font-weight: bold;
+      margin-right: .5rem;
+    }
   }
   .item {
     display: block;

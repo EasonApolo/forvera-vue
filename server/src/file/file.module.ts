@@ -9,6 +9,7 @@ import { FileService } from './file.service';
     MongooseModule.forFeature([{ name: 'File', schema: FileSchema }])
   ],
   controllers: [FileController],
-  providers: [FileService]
+  providers: [FileService],
+  exports: [FileService],
 })
 export class FileModule {}
