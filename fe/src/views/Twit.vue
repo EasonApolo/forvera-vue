@@ -11,27 +11,40 @@
                 <pre id='support' v-text='contentInPre'></pre>
                 <textarea id='input' class='item' v-model='twit.content' placeholder="content"></textarea>
               </div>
-              <div id='preview' class='item' v-if='twit.files.length'>
-                <div class='preview-item' v-for="file in twit.files" :key=file.name>
-                  <img :src='file.data'>
+              <div class='item' v-if='twit.files.length'>
+                <div class='images'>
+                  <div class='image-item' v-for="(file, index) in twit.files" :key=file.name>
+                    <img :src='file.data'>
+                    <div id='image-control'>
+                      <div class='bg'></div>
+                      <div class='control' v-if='index > 0' @click='forward(index)'>←</div>
+                      <div class='control' v-if='index < twit.files.length-1' @click='backward(index)'>→</div>
+                      <div class='control' @click='remove(index)'>×</div>
+                    </div>
+                  </div>
                 </div>
               </div>
               <div class='item'>
                 <label>
                   <input id='input-file' ref='inputFile' type="file" accept="image/*" @change="selectImage" multiple>
-                  <btn @click='selectImageTrigger'>选择</btn>
+                  <btn @click='selectImageTrigger'>图片</btn>
                 </label>
                 <btn @click='send()'><pro :progress='twit.sendProgress'></pro>发送</btn>
                 <span>{{ userInfo.username }}</span>
               </div>
             </div>
 
-            <div class="item" v-for="(twit, index) in data" :key="index">
+            <div class="item" v-for="(t, index) in data" :key="index">
               <div class='meta'>
-                <div class="name">{{twit.user.username}}</div>
-                <div class="date">{{twit.created_time}}</div>
+                <div class="name">{{t.user.username}}</div>
+                <div class="date">{{t.created_time}}</div>
               </div>
-              <div class="content">{{twit.content}}</div>
+              <div class="content">{{t.content}}</div>
+              <div class='images' v-if='t.files.length'>
+                <div class='image-item' v-for="f in t.files" :key=f._id>
+                  <img :src='f.url'>
+                </div>
+              </div>
               <!-- <div class="opmenu">
                 <div class='comments' @click='setReplyTo(item)'>
                   <div class='icon' style='width:1.25rem'><svg viewBox="0 0 24 24"><path fill='#ccc' d='M14.046 2.242l-4.148-.01h-.002c-4.374 0-7.8 3.427-7.8 7.802 0 4.098 3.186 7.206 7.465 7.37v3.828c0 .108.044.286.12.403.142.225.384.347.632.347.138 0 .277-.038.402-.118.264-.168 6.473-4.14 8.088-5.506 1.902-1.61 3.04-3.97 3.043-6.312v-.017c-.006-4.367-3.43-7.787-7.8-7.788zm3.787 12.972c-1.134.96-4.862 3.405-6.772 4.643V16.67c0-.414-.335-.75-.75-.75h-.396c-3.66 0-6.318-2.476-6.318-5.886 0-3.534 2.768-6.302 6.3-6.302l4.147.01h.002c3.532 0 6.3 2.766 6.302 6.296-.003 1.91-.942 3.844-2.514 5.176z'></path></svg></div>
@@ -85,6 +98,7 @@ import { Button, Progress } from '@/components/Button.js'
 import { mapGetters } from 'vuex'
 import { readFile } from '@/shared/helper'
 import { request } from '../shared/Request'
+import { ip } from '@/shared/config'
 
 export default {
   name: 'twit',
@@ -178,6 +192,24 @@ export default {
     },
   },
   methods: {
+    forward (index) {
+      let files = this.twit.files
+      if (index > 0) {
+        const f = files.splice(index, 1)
+        files.splice(index - 1, 0, ...f)
+      }
+      console.log(files)
+    },
+    backward (index) {
+      let files = this.twit.files
+      if (index < files.length - 1) {
+        const f = files.splice(index, 1)
+        files.splice(index + 1, 0, ...f)
+      }
+    },
+    remove (index) {
+      this.twit.files.splice(index, 1)
+    },
     selectImageTrigger () {
       this.$refs.inputFile.click()
     },
@@ -261,6 +293,7 @@ export default {
       twits.map(t => {
         const date = new Date(t.created_time)
         t.created_time = `${ date.toLocaleDateString() } ${ date.toLocaleTimeString(undefined, {hour12: false}) }`
+        t.files.map(f => { f.url = `${ ip }${ f.url }` })
       })
       this.data.push(...twits)
       // fetch(window.ip + 'comments?post=' + 53 + '&page=' + page + '&parent=0')
@@ -356,18 +389,39 @@ export default {
       overflow: hidden;
     }
   }
-  #preview {
-    display: flex;
-    width: calc(100% - 4rem);
-    flex-wrap: wrap;
-    .preview-item {
-      flex: 0 0 auto;
-      width: 33.3%;
-      height: 0;
-      padding-bottom: 33.3%;
+  .images .image-item {
+    position: relative;
+    &:hover #image-control {
+      opacity: 1;
+    }
+    #image-control {
+      position: absolute;
+      right: .25rem;
+      top: .25rem;
+      border-radius: .5rem;
+      opacity: 0;
       overflow: hidden;
-      img {
-        width: 95%;
+      transition: opacity .2s ease-in-out;
+      .bg {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background-color: white;
+        opacity: .7;
+        backdrop-filter: blur(30px);
+      }
+      .control {
+        position: relative;
+        display: inline-block;
+        width: 1.5rem;
+        height: 1.5rem;
+        line-height: 1.5rem;
+        text-align: center;
+        transition: background-color .2s ease;
+        &:hover {
+          background-color: #eee;
+          opacity: .5;
+        }
       }
     }
   }
@@ -375,16 +429,29 @@ export default {
     display: none;
   }
 }
-.item {
-  padding: 1rem 2rem;
-  background-repeat: no-repeat;
-  &:hover {
-    background-color: #fafafa;
+.images {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 32%);
+  grid-row-gap: 1rem;
+  justify-content: space-between;
+  .image-item {
+    width: 100%;
+    overflow: hidden;
+    img {
+      display: block;
+      width: 100%;
+    }
   }
+  &::after {
+    content: "";
+    flex: auto;
+  }
+}
+.item {
   .meta {
     .name, .date {
       display: inline-block;
-      margin: 0 1rem .5rem 0;
+      margin: 0 1rem 0 0;
       font-size: .9375rem;
     }
     .name {
@@ -403,20 +470,6 @@ export default {
     font-size: 0.875rem;
     line-height: 1.75rem;
     word-break: break-all;
-    /deep/ p {
-      margin: 0;
-    }
-    /deep/ a {
-      text-decoration: underline;
-      color: #88f;
-    }
-    /deep/ img {
-      display: block;
-      margin: .5rem 0;
-      max-width: 30%;
-      border-radius: 1.25rem;
-      transition: .2s ease-in-out;
-    }
   }
   .opmenu {
     margin-top: .5rem;
@@ -491,36 +544,6 @@ export default {
       }
     }
   }
-}
-.changing {
-  background-image: url(../../public/changing.svg);
-  background-size: 5rem;
-  background-position: 95% .5rem;
-}
-.nichijou {
-  background-image: url(../../public/nichijou.svg);
-  background-size: 4rem;
-  background-position: 95% 2rem;
-}
-.special {
-  background-image: url(../../public/special.svg);
-  background-size: 3rem;
-  background-position: 95% 4rem;
-}
-.what {
-  background-image: url(../../public/what.svg);
-  background-size: 5rem;
-  background-position: 95% 2rem;
-}
-.recorder {
-  background-image: url(../../public/recorder.svg);
-  background-size: 3rem;
-  background-position: 95% 1rem;
-}
-.feellow {
-  background-image: url(../../public/feellow.svg);
-  background-size: 5rem;
-  background-position: 95% 0rem;
 }
 .right {
   button {

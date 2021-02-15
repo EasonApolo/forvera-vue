@@ -42,6 +42,7 @@ export class TwitService {
   async getTwit(page: number): Promise<Twit[]> {
     const twits = this.twitModel.find({ ancestor: { $exists: false } })
       .populate('user', 'username')
+      .populate('files', 'url')
       .skip(this.PER_PAGE * page).limit(this.PER_PAGE).exec();
     return twits;
   }

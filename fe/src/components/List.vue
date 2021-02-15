@@ -62,7 +62,6 @@ export default {
   border-bottom: 1px solid #eee;
   text-align: left;
   transition: all .3s;
-  cursor: pointer;
   .title {
     line-height: 1.5rem;
     font-size: 1rem;
@@ -77,7 +76,6 @@ export default {
     }
   }
   .content {
-    margin-top: 0.25rem;
     font-size: 0.875rem;
     line-height: 1.375rem;
     color: #555;
