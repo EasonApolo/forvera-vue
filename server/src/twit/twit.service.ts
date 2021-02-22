@@ -15,7 +15,11 @@ export class TwitService {
     let reactions: Array<number> = new Array(12).fill(0);
     let created_time: Date = new Date();
     let files = new Array();
-    const level = 0 + (addTwitDTO.ancestor ? 1 : 0) + (addTwitDTO.parent ? 1 : 0);
+    let level = 0
+    if (addTwitDTO.ancestor) { 
+      level += 1;
+      if (addTwitDTO.parent == addTwitDTO.ancestor) level += 1
+    }
     const twit2Save: any = {
       user: userId, created_time, level,
       reactions, files, ...addTwitDTO
@@ -42,8 +46,15 @@ export class TwitService {
   async getTwit(page: number): Promise<Twit[]> {
     const twits = this.twitModel.find({ ancestor: { $exists: false } })
       .populate('user', 'username')
-      .populate('files', 'url')
+      .populate('files', 'url thumb')
       .skip(this.PER_PAGE * page).limit(this.PER_PAGE).exec();
     return twits;
+  }
+  
+  async getReplies(twitId: string) {
+    const replies = await this.twitModel.findById(twitId)
+      .populate({ path: 'descendants', populate: { path: 'user', select: 'username' } })
+      .select('children')
+    return replies.descendants
   }
 }

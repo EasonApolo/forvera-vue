@@ -12,6 +12,7 @@ const Button = styled('button', {
   display: inline-block;
   margin-right: ${ p => p.mr }rem;
   padding: ${ p => Padding[p.size] }
+  line-height: 1.125rem;
   font-size: ${ p => `${ FontSize[p.size] }rem`} }
   transition: all .2s ease;
   transition-property: color, background-color;
@@ -19,10 +20,12 @@ const Button = styled('button', {
   outline: none;
   user-select: none;
   overflow: hidden;
-  border-radius: 2rem;
+  border-radius: 1rem;
   border: 1px solid ${ p => p.type ? p.theme.btn[p.type] : p.theme.btn.primary };
   background: ${ p => p.theme.bg }
+  opacity: .7;
   :hover {
+    opacity: 1;
     color: ${ p => p.theme.bg }
     background-color: ${ p => p.type ? p.theme.btn[p.type] : p.theme.btn.primary }
   }

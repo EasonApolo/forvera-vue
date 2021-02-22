@@ -19,7 +19,7 @@ export class CategoryController {
   @Post()
   async addCat(@Req() req, @Body() catDTO: Category) {
     const cats = await this.catServer.addCategory(catDTO)
-    return { statusCode: 200, data: cats }
+    return cats
   }
   
   @Put('/:id')
@@ -28,7 +28,7 @@ export class CategoryController {
     @Body() catDTO: Category
   ) {
       const cats = await this.catServer.edit(catId, catDTO);
-      return { statusCode: 200, data: cats }
+      return cats
   }
   
   @Delete('/:id')
@@ -36,6 +36,6 @@ export class CategoryController {
     @Param('id', new ValidateObjectId()) catId
   ) {
       const cats = await this.catServer.delete(catId);
-      return { statusCode: 200, data: cats }
+      return cats
   }
 }

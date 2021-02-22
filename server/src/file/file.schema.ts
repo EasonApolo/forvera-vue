@@ -7,6 +7,7 @@ export const FileSchema = new mongoose.Schema({
   encoding: String,
   mimetype: String,
   url: String,
+  thumb: String,
   size: Number,
   created_time: Date,
 })

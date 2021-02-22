@@ -81,15 +81,11 @@ export default {
       } else {
         res = await request(`cat/${ this.target }`, 'PUT', payload)
       }
-      if (res.statusCode == 200) {
-        this.updateCats(res.data)
-      }
+      this.updateCats(res.data)
     },
     async deleteCat () {
       let res = await request(`cat/${ this.target }`, 'DELETE')
-      if (res.statusCode == 200) {
-        this.updateCats(res.data)
-      }
+      this.updateCats(res.data)
     },
     updateCats (data) {
       this.title = this.description = ''

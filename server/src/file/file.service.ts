@@ -5,6 +5,7 @@ import { File } from './file.interface';
 import { promises as fs } from 'fs'
 import { staticPath } from 'src/shared/staticPath';
 import { join, extname } from 'path'
+import * as ThumbNail from 'image-thumbnail'
 
 @Injectable()
 export class FileService {
@@ -28,17 +29,22 @@ export class FileService {
     const buffer = file.buffer
     delete file.buffer
     const newFile = await new this.fileModel(file as File).save();
-    // save file and return _id
+
+    // mkdir, update document, write file/thumb
     const assetsDir = join(staticPath, postId)
     await fs.mkdir(assetsDir, { recursive: true })
     const fName = `${ newFile._id.toString() }${ extname(file.originalname) }`
-    const savePath = join(assetsDir, fName)
+    const tName = `${ newFile._id.toString() }_thumb${ extname(file.originalname) }`
     const savedFile = await this.fileModel.findByIdAndUpdate(
       newFile._id,
-      { url: join(postId, fName) },
+      { url: join(postId, fName), thumb: join(postId, tName) },
       { new: true }
     )
-    await fs.writeFile(savePath, buffer)
+    await fs.writeFile(join(assetsDir, fName), buffer)
+    const options = { width: 200, height: 200, fit: 'cover' }
+    const thumb_buffer = await ThumbNail(buffer, options);
+    await fs.writeFile(join(assetsDir, tName), thumb_buffer)
+
     return savedFile;
   }
 

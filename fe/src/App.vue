@@ -59,7 +59,7 @@ export default {
     },
     async checkStatus () {
       const res = await request('auth/status', 'POST')
-      return res.statusCode == 200
+      return !res.hasOwnProperty('ERRNO')
     },
   }
 }

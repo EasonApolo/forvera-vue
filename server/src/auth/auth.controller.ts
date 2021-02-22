@@ -1,4 +1,4 @@
-import { Controller, Post, UseGuards, Request } from '@nestjs/common';
+import { Controller, Post, UseGuards, Request, Res, HttpCode } from '@nestjs/common';
 import { Public } from 'src/shared/public.decorator';
 import { AuthService } from './auth.service';
 import { LocalAuthGuard } from './local-auth.guard';
@@ -12,7 +12,7 @@ export class AuthController {
   @Post('login')
   async login(@Request() req) {
     const tokenObj = await this.authService.getToken(req.user)
-    return { 'statusCode': 200, token: tokenObj.token }
+    return { token: tokenObj.token }
   }
 
   @Public()
@@ -22,7 +22,5 @@ export class AuthController {
   }
 
   @Post('status')
-  async checkStatus(@Request() req) {
-    return { 'statusCode': 200 }
-  }
+  async checkStatus() {}
 }

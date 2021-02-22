@@ -25,12 +25,12 @@
                 </div>
               </div>
               <div class='item'>
+                <btn @click='send()'><pro :progress='twit.progress.per'></pro>发送</btn>
+                <btn @click='toggleAnonymous()'>{{ sendTwitUserName }}</btn>
                 <label>
                   <input id='input-file' ref='inputFile' type="file" accept="image/*" @change="selectImage" multiple>
                   <btn @click='selectImageTrigger'>图片</btn>
                 </label>
-                <btn @click='send()'><pro :progress='twit.sendProgress'></pro>发送</btn>
-                <span>{{ userInfo.username }}</span>
               </div>
             </div>
 
@@ -39,15 +39,31 @@
                 <div class="name">{{t.user.username}}</div>
                 <div class="date">{{t.created_time}}</div>
               </div>
-              <div class="content">{{t.content}}</div>
+              <div class="content" v-html="t.content"></div>
               <div class='images' v-if='t.files.length'>
                 <div class='image-item' v-for="f in t.files" :key=f._id>
-                  <img :src='f.url'>
+                  <img :src='f.thumb'>
+                </div>
+              </div>
+              <div class='op'>
+                <div class='show-replies' @click='showReplies(t)'>
+                </div>
+              </div>
+              <div class='replies' v-if='t.showReplies'>
+                <div class='reply'>
+                  <btn class='send-reply' :mr=0 @click='sendReply()'>发送</btn>
+                  <textarea v-model="reply.content" :placeholder="replyPlaceHolder"></textarea>
+                </div>
+                <div class='wrapper'>
+                  <div v-for='r in replies' :key='r._id' class='reply-entry' @click='replyToReply(r)'>
+                    <div class='name'>{{ r.user.username }}</div>:
+                    <div class='content'>{{ r.content }}</div>
+                  </div>
                 </div>
               </div>
               <!-- <div class="opmenu">
                 <div class='comments' @click='setReplyTo(item)'>
-                  <div class='icon' style='width:1.25rem'><svg viewBox="0 0 24 24"><path fill='#ccc' d='M14.046 2.242l-4.148-.01h-.002c-4.374 0-7.8 3.427-7.8 7.802 0 4.098 3.186 7.206 7.465 7.37v3.828c0 .108.044.286.12.403.142.225.384.347.632.347.138 0 .277-.038.402-.118.264-.168 6.473-4.14 8.088-5.506 1.902-1.61 3.04-3.97 3.043-6.312v-.017c-.006-4.367-3.43-7.787-7.8-7.788zm3.787 12.972c-1.134.96-4.862 3.405-6.772 4.643V16.67c0-.414-.335-.75-.75-.75h-.396c-3.66 0-6.318-2.476-6.318-5.886 0-3.534 2.768-6.302 6.3-6.302l4.147.01h.002c3.532 0 6.3 2.766 6.302 6.296-.003 1.91-.942 3.844-2.514 5.176z'></path></svg></div>
+                  <div class='icon' style='width:1.25rem'></div>
                   <div class='num'>{{item.child.length === 0 ? '' : item.child.length}}</div>
                 </div>
                 <div class='addreact'>＋
@@ -74,17 +90,6 @@
         </list>
       </template>
 
-      <template #right>
-        <rbox :title='"回复"'>
-          <template #list>
-            <input class='item' type='text' v-model='name' placeholder="君の名は">
-            <textarea class='item' type='text' v-model='content' placeholder="言叶" rows="10"></textarea>
-            <div class='item replyto' v-show="toParent != 0" @click='toParent=0'>回复给<i>{{toParentName}}</i><br>（点击取消）</div>
-            <!-- <button class="close" v-show="addOpen" @click="addOpen=false"></button> -->
-            <div class='item plain'><button @click="send"></button></div>
-          </template>
-        </rbox>
-      </template>
     </layout>
   </div>
 </template>
@@ -109,7 +114,10 @@ export default {
         files: [],
         parent: null,
         ancestor: null,
-        sendProgress: 0,
+        progress: {
+          per: 0
+        },
+        anonymous: true,
       },
       data: [],
       curPage: 0,
@@ -118,12 +126,19 @@ export default {
       listNode: undefined,
       data: [],
       max_page: 101,
-      name: localStorage.name || '',
-      content: localStorage.content || '',
       addOpen: false,
       large_device: true,
       reactdata: [],
       toParent: 0,
+      reply: {
+        content: '',
+        parent: null,
+        parentName: null,
+        ancestor: null,
+        opened: null
+      },
+      replies: [],
+      twitShowReplies: null,
       map: {
         'gd': '🉑',
         'zn': '👍',
@@ -160,6 +175,8 @@ export default {
     this.listNode = document.getElementsByClassName('list')[0]
   },
   computed: {
+    replyPlaceHolder () { return `回复给${ this.reply.parent_name } : ${ this.reply.replyToContent}` },
+    sendTwitUserName () { return this.twit.anonymous ? 'anonymous' : this.userInfo.username },
     contentInPre () {
       // I met strange problem, last newline in PRE not showing, so add an extra newline manually.
       return this.twit.content + '\n'
@@ -223,7 +240,6 @@ export default {
           }
         )
       )
-      console.log(fileObjs)
       this.twit.files.push(...fileObjs)
     },
     fetchReact () {
@@ -289,27 +305,35 @@ export default {
       this.max_page = 1000
     },
     async fetchTwits (page) {
-      let twits = await request(`twit/${ page }`)
+      let twits = await request(`twit/${ page }`, null, null, { upload: true, progress: this.twit.progress })
       twits.map(t => {
         const date = new Date(t.created_time)
+        t.content = t.content.replace(/\n/g, '<br>')
         t.created_time = `${ date.toLocaleDateString() } ${ date.toLocaleTimeString(undefined, {hour12: false}) }`
-        t.files.map(f => { f.url = `${ ip }${ f.url }` })
+        t.files.map(f => { 
+          f.url = `${ ip }${ f.url }`;
+          f.thumb = `${ ip }${ f.thumb }`;
+        })
+        t.showReplies = false
       })
       this.data.push(...twits)
-      // fetch(window.ip + 'comments?post=' + 53 + '&page=' + page + '&parent=0')
-      // .then(res => {
-      //   return res.json()
-      // }).then(json => {
-      //   if (json.length == 0) {
-      //     this.max_page = page - 1
-      //   }
-      //   json.map(v => {v.child = []})
-      //   this.data = this.data.concat(json)
-      //   this.intSwitch = 0
-      //   let allparent = json.map(v => v.id)
-      //   this.fetchChildComments(allparent)
-      //   this.fetchReact()
-      // })
+    },
+    replyToReply () {
+      this.reply.
+    },
+    async showReplies (t) {
+      if (t.showReplies) {
+        t.showReplies = false
+        this.reply.opened = null
+      } else {
+        if (this.reply.opened) this.reply.opened.showReplies = false
+        this.reply.opened = t;
+        t.showReplies = true;
+        this.reply.ancestor = this.reply.parent = t._id;
+        this.reply.parentName = t.user.username
+        let replies = await request(`twit/replies/${ t._id }`)
+        this.replies = replies
+      }
     },
     fetchChildComments (allparent) {
       fetch(window.ip + 'comments?post=' + 53 + '&parent=' + allparent.join(','))
@@ -328,6 +352,18 @@ export default {
         })
       })
     },
+    async sendReply () {
+      let r = this.reply
+      if (r.content.length < 1 || !r.ancestor || !r.parent) {
+        this.$store.commit('notify', { content: '内容不能为空' }); return;
+      }
+      let fd = new FormData()
+      fd.append('content', this.reply.content)
+      fd.append('parent', this.reply.parent)
+      fd.append('ancestor', this.reply.ancestor)
+      let res = await request('twit', 'POST', fd)
+      this.$store.commit('notify', { content: '发送成功' })
+    },
     async send () {
       let t = this.twit
       if (t.content == '') {
@@ -339,20 +375,15 @@ export default {
       t.files.map(f => fd.append('files', f.blob))
       if (t.parent) fd.append('parent', null)
       if (t.ancestor) fd.append('ancestor', undefined)
-      let res = await request('twit', 'POST', fd)
-      console.log(res)
+      let res = await request('twit', 'POST', fd, { upload: true, progress: this.twit.progress })
       this.$store.commit('notify', { content: '发送成功' })
-      // fetch(window.ip + 'comments', {
-      //   method: 'POST',
-      //   body: form
-      // }).then(() => {
-      //   this.toParent = 0
-      //   this.addOpen = false
-      //   this.clearComment()
-      //   this.$bus.$emit('pop', '已发送')
-      //   this.intSwitch = 1
-      //   this.fetchComment(1)
-      // })
+    },
+    toggleAnonymous () {
+      if (this.userInfo.username) {
+        this.twit.anonymous = !this.twit.anonymous
+      } else {
+        this.$store.commit('notify', { content: '登录后可以使用用户名发言' })
+      }
     }
   }
 }
@@ -389,8 +420,28 @@ export default {
       overflow: hidden;
     }
   }
-  .images .image-item {
+  #input-file {
+    display: none;
+  }
+}
+.images {
+  display: grid;
+  margin-bottom: .5rem;
+  grid-template-columns: repeat(auto-fill, 32%);
+  grid-row-gap: .5rem;
+  justify-content: space-between;
+  .image-item {
     position: relative;
+    // padding/margin-top/bottom在设置百分比值时针对父元素width，用来模拟正方形。这里因为是grid，所以只要设置100%，不用32%。
+    padding-bottom: 100%;
+    width: 100%;
+    height: 0;
+    overflow: hidden;
+    border-radius: .5rem;
+    img {
+      display: block;
+      width: 100%;
+    }
     &:hover #image-control {
       opacity: 1;
     }
@@ -425,27 +476,6 @@ export default {
       }
     }
   }
-  #input-file {
-    display: none;
-  }
-}
-.images {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, 32%);
-  grid-row-gap: 1rem;
-  justify-content: space-between;
-  .image-item {
-    width: 100%;
-    overflow: hidden;
-    img {
-      display: block;
-      width: 100%;
-    }
-  }
-  &::after {
-    content: "";
-    flex: auto;
-  }
 }
 .item {
   .meta {
@@ -461,15 +491,26 @@ export default {
       color: #999;
       font-size: .8125rem;
     }
-    .reply {
-      font-size: .8125rem;
-    }
   }
   .content {
     position: relative;
+    margin-top: .5rem;
     font-size: 0.875rem;
-    line-height: 1.75rem;
+    line-height: 1.25rem;
     word-break: break-all;
+  }
+  .images {
+    margin-top: .5rem;
+  }
+  .op {
+    margin-top: .5rem;
+    .show-replies {
+      width: 1.25rem;
+      height: 1.25rem;
+      background-image: url('../../public/reply.svg');
+      background-size: contain;
+      cursor: pointer;
+    }
   }
   .opmenu {
     margin-top: .5rem;
@@ -544,122 +585,37 @@ export default {
       }
     }
   }
-}
-.right {
-  button {
-    width: 4rem;
-    height: 2rem;
-    border: none;
-    outline: none;
-    border-radius: 1rem;
-    background-color: #ddf;
-    background-image: url('../../public/send.svg');
-    background-size: 1.125rem 1.125rem;
-    background-position: 50% 50%;
-    background-repeat: no-repeat;
-    cursor: pointer;
-    transition: all .5s ease;
-    &:hover {
-      background-color: #aaf;
-    }
-  }
-  input, textarea {
-    padding: .5rem .75rem;
-    width: calc(100% - 1.5rem);
-    font-size: .8125rem;
-    font-family: Verdana, Helvetica, Arial, sans-serif;
-    line-height: 1.25rem;
-    transition: all .2s ease;
-    &:focus {
-      background-color: #dcdcdc;
-    }
-  }
-  .replyto {
-    font-size: 15px;
-    cursor: pointer;
-    transition: color .2s ease-in-out;
-    &:hover {
-      color: #aaa;
-    }
-  }
-  .templates {
-    display: flex;
-    flex-wrap: wrap;
-    font-size: .875rem;
-    line-height: 2.5rem;
-    span {
-      line-height: 2.5rem;
-    }
-    div {
-      flex: 0 0 auto;
-      margin: .25rem .25rem 0 0;
-      padding: 0 .5rem;
-      line-height: 1.5rem;
-      background-color: #DEE1E6;
-      border-radius: 1rem;
-      cursor: pointer;
-    }
-  }
-}
-@media (max-width: 750px) {
-  .twit {
-    width: 100%;
-    margin: 0;
-    margin-bottom: 5rem;
-    padding: 0;
-    #add-open {
-      position: fixed;
-      bottom: 5rem;
-      right: 2rem;
-      width: 3rem;
-      height: 3rem;
-      border-radius: 1.5rem;
-      background-color: #ccf;
-      background-image: url(../../public/send.svg);
-      background-position: 45% 50%;
-      background-size: 50%;
-      background-repeat: no-repeat;
-      cursor: pointer;
-    }
-    .add{
-      input, textarea {
-        margin-top: 1rem;
-        width: calc(100% - 2rem);
-        padding: 1rem;
-        font-size: 1rem;
-      }
+  .replies {
+    margin-top: .5rem;
+    .reply {
+      position: relative;
+      margin-bottom: .25rem;
       textarea {
-        margin-top: 0;
+        width: calc(100% - 5rem);
+        padding: .5rem 1rem;
+        padding-right: 4rem;
+        background-color: #eee;
+        border-radius: 1rem;
       }
-      .input-name {
-        margin-top: 1rem;
+      .send-reply {
+        position: absolute;
+        top: .25rem;
+        right: .25rem;
       }
-      .close {
-        background-image: url(../../public/close.svg);
-        background-size: 1rem;
-        background-position: 50% 50%;
-        background-repeat: no-repeat;
-        background-color: pink;
-      }
-      button {
-        margin: 0 1rem;
-        width: 5rem;
+    }
+    .wrapper {
+      .reply-entry {
+        padding: .125rem .5rem;
+        border-radius: .25rem;
+        cursor: pointer;
+        &:hover {
+          background-color: #eee;
+          transition: .2s ease;
+        }
+        .name { display: inline; }
+        .content { display: inline; }
       }
     }
   }
-  .hide {
-    display: none;
-  }
-}
-.slide-large-enter, .slide-large-leave-to {
-  transform: translateY(100%);
-  opacity: 0;
-}
-.slide-small-leave-to, .slide-small-enter {
-  transform: translateY(8rem);
-  opacity: 0;
-}
-.slide-small-enter-active, .slide-small-leave-active, .slide-large-enter-active, .slide-large-leave-active {
-  transition: all .3s ease-in-out;
 }
 </style>

@@ -20,4 +20,10 @@ export class TwitController {
   async getTwit(@Param('page') page) {
     return this.twitService.getTwit(parseInt(page))
   }
+
+  @Public()
+  @Get('replies/:twitId')
+  async getReplies(@Param('twitId') twitId) {
+    return this.twitService.getReplies(twitId)
+  }
 }

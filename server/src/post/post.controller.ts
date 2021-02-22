@@ -48,7 +48,7 @@ export class PostController {
     }
     const newPost = await this.postService.editPost(postId, editPostDTO);
     if (!newPost) throw new NotFoundException('Post does not exist!');
-    return { statusCode: 200, data: newPost}
+    return { data: newPost}
   }
 
   @Delete('/:postId')
@@ -62,6 +62,6 @@ export class PostController {
     }
     const newPost = await this.postService.deletePost(postId);
     if (!newPost) throw new NotFoundException('Post does not exist!');
-    return { statusCode: 200 }
+    return
   }
 }

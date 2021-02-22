@@ -24,7 +24,7 @@
               <div class='item hint' v-if="posts.length <= 0">还没有发表过文章</div>
               <div class='item' v-else v-for='post in posts' :key='post.id'>
                 <span>{{ post.title }}</span>
-                <span class='badge'>{{ postStatus(post.status) }}</span>
+                <badge>{{ postStatus(post.status) }}</badge>
                 <btn class='to-right' @click='edit(post)' :size='0'>编辑</btn>
               </div>
             </template >
@@ -50,6 +50,7 @@ import { Button } from '../components/Button.js'
 import { request } from '@/shared/Request'
 import { mapGetters, mapState } from 'vuex'
 import { getPostStatus } from '@/shared/dataMap'
+import { Badge } from '@/components/Badge.js'
 
 export default {
   name: 'profile',
@@ -65,7 +66,8 @@ export default {
     'layout': Layout,
     'list': List,
     'rbox': Rbox,
-    'btn': Button
+    'btn': Button,
+    'badge': Badge,
   },
   created () {
   },
@@ -97,17 +99,12 @@ export default {
         this.loginSuccessHandler(res)
       }
     },
-    login () {
+    async login () {
       let payload = { username: this.username, password: this.password }
       this.$store.commit('notify', { content: '登录中' })
-      request('auth/login', 'POST', JSON.stringify(payload))
-      .then(res => {
-        if (res.statusCode == 200) {
-          this.loginSuccessHandler(res)
-        } else {
-          this.$store.commit('notify', { content: `ERR: ${ res.message }`, type: 'warning' })
-        }
-      })
+      let res = await request('auth/login', 'POST', JSON.stringify(payload))
+      this.loginSuccessHandler(res)
+      // this.$store.commit('notify', { content: `ERR: response HttpCode ${ res.status }`, type: 'warning' })
     },
     logout () {
       this.$store.commit('setToken', undefined)
@@ -159,14 +156,6 @@ export default {
 }
 #btn-logout {
   float: right;
-}
-.badge {
-  margin-left: 1rem;
-  padding: .125rem .5rem;
-  border: 1px solid #888;
-  border-radius: 1rem;
-  font-size: .5rem;
-  color: #888;
 }
 .actions {
   & div {
