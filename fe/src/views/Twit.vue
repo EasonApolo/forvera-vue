@@ -319,7 +319,7 @@ export default {
       this.data.push(...twits)
     },
     replyToReply () {
-      this.reply.
+      // this.reply.
     },
     async showReplies (t) {
       if (t.showReplies) {

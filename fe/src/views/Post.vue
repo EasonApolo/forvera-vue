@@ -230,39 +230,41 @@ export default {
   .content {
     font-size: .9375rem;
     line-height: 1rem;
-    /deep/ p {
-      margin: 1.25rem 0;
-      line-height: 1.625rem;
-      text-align: left;
-      word-wrap: break-word;
-    }
-    /deep/ a {
-      text-decoration: underline;
-    }
-    /deep/ img {
-      max-width: 100%;
-      height: auto;
-      margin-bottom: .75rem;
-    }
-    /deep/ figcaption {
-      text-align: center;
-      color: #888;
-      font-size: 14px;
-      font-style: italic;
-    }
-    /deep/ code {
-      display: block;
-      margin: .5rem 0;
-      padding: .75rem 1.25rem;
-      line-height: 1.25rem;
-      text-align: left;
-      background-color: #FaFaFF;
-      word-wrap: break-word;
-      font-family: "Courier New";
-      border-radius: .5rem;
-    }
-    /deep/ pre {
-      white-space: pre-wrap;
+    ::v-deep {
+      p {
+        margin: 1.25rem 0;
+        line-height: 1.625rem;
+        text-align: left;
+        word-wrap: break-word;
+      }
+      a {
+        text-decoration: underline;
+      }
+      img {
+        max-width: 100%;
+        height: auto;
+        margin-bottom: .75rem;
+      }
+      figcaption {
+        text-align: center;
+        color: #888;
+        font-size: 14px;
+        font-style: italic;
+      }
+      code {
+        display: block;
+        margin: .5rem 0;
+        padding: .75rem 1.25rem;
+        line-height: 1.25rem;
+        text-align: left;
+        background-color: #FaFaFF;
+        word-wrap: break-word;
+        font-family: "Courier New";
+        border-radius: .5rem;
+      }
+      pre {
+        white-space: pre-wrap;
+      }
     }
   }
 }
