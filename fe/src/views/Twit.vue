@@ -25,7 +25,8 @@
                 </div>
               </div>
               <div class='item'>
-                <btn @click='send()'><pro :progress='twit.progress.per'></pro>发送</btn>
+                <pro :progress='twit.progress.per'></pro>
+                <btn @click='send()'>发送</btn>
                 <btn @click='toggleAnonymous()'>{{ sendTwitUserName }}</btn>
                 <label>
                   <input id='input-file' ref='inputFile' type="file" accept="image/*" @change="selectImage" multiple>
@@ -35,30 +36,33 @@
             </div>
 
             <div class="item" v-for="(t, index) in data" :key="index">
-              <div class='meta'>
-                <div class="name">{{t.user.username}}</div>
-                <div class="date">{{t.created_time}}</div>
-              </div>
-              <div class="content" v-html="t.content"></div>
-              <div class='images' v-if='t.files.length'>
-                <div class='image-item' v-for="f in t.files" :key=f._id>
-                  <img :src='f.thumb'>
+              <div class='main'>
+                <div class='meta'>
+                  <div class="name">{{t.user.username}}</div>
+                  <div class="date">{{t.created_time}}</div>
+                </div>
+                <div class="content" v-html="t.content" @click='replyToReply(t)'></div>
+                <div class='image-display' v-if="display.twitId == t._id" @click='clearDisplay'><img :src='display.url'></div>
+                <div class='images' v-if='t.files.length'>
+                  <div class='image-item' v-for="f in t.files" :key=f._id @click='displayImg(t._id, f.url)'>
+                    <img :src='f.thumb'>
+                  </div>
                 </div>
               </div>
               <div class='op'>
-                <div class='show-replies' @click='showReplies(t)'>
-                </div>
+                <!-- <div class='show-replies'>
+                </div> -->
               </div>
-              <div class='replies' v-if='t.showReplies'>
-                <div class='reply'>
-                  <btn class='send-reply' :mr=0 @click='sendReply()'>发送</btn>
-                  <textarea v-model="reply.content" :placeholder="replyPlaceHolder"></textarea>
-                </div>
+              <div class='replies'>
                 <div class='wrapper'>
-                  <div v-for='r in replies' :key='r._id' class='reply-entry' @click='replyToReply(r)'>
-                    <div class='name'>{{ r.user.username }}</div>:
+                  <div v-for='r in t.descendants' :key='r._id' class='reply-entry' @click='replyToReply(r)'>
+                    <div class='name'>{{ r.user.username }}</div><div class='name' v-if='replyParentName(r)'> &gt; {{ replyParentName(r) }}</div>:
                     <div class='content'>{{ r.content }}</div>
                   </div>
+                </div>
+                <div class='reply' v-if='reply.ancestor == t._id'>
+                  <btn class='send-reply' :mr=0 @click='sendReply()' :size=0>发送</btn>
+                  <textarea v-model="reply.content" :placeholder="replyPlaceHolder"></textarea>
                 </div>
               </div>
               <!-- <div class="opmenu">
@@ -124,6 +128,7 @@ export default {
       intSwitch: 0,
       mainNode: undefined,
       listNode: undefined,
+      display: { twitId: null, url: null },
       data: [],
       max_page: 101,
       addOpen: false,
@@ -133,9 +138,9 @@ export default {
       reply: {
         content: '',
         parent: null,
-        parentName: null,
         ancestor: null,
-        opened: null
+        parentName: null,
+        replyToContent: '',
       },
       replies: [],
       twitShowReplies: null,
@@ -175,7 +180,10 @@ export default {
     this.listNode = document.getElementsByClassName('list')[0]
   },
   computed: {
-    replyPlaceHolder () { return `回复给${ this.reply.parent_name } : ${ this.reply.replyToContent}` },
+    replyParentName () { 
+      return function (r) { return r.parent?.username }
+    },
+    replyPlaceHolder () { return `回复给${ this.reply.parentName } : ${ this.reply.replyToContent }` },
     sendTwitUserName () { return this.twit.anonymous ? 'anonymous' : this.userInfo.username },
     contentInPre () {
       // I met strange problem, last newline in PRE not showing, so add an extra newline manually.
@@ -304,6 +312,13 @@ export default {
       this.data = []
       this.max_page = 1000
     },
+    clearDisplay () {
+      this.display = { twitId: null, url: null }
+    },
+    displayImg (twitId, url) {
+      this.display.twitId = twitId
+      this.display.url = url
+    },
     async fetchTwits (page) {
       let twits = await request(`twit/${ page }`, null, null, { upload: true, progress: this.twit.progress })
       twits.map(t => {
@@ -314,26 +329,26 @@ export default {
           f.url = `${ ip }${ f.url }`;
           f.thumb = `${ ip }${ f.thumb }`;
         })
-        t.showReplies = false
+        this.handleDescendants(t)
       })
       this.data.push(...twits)
     },
-    replyToReply () {
-      // this.reply.
-    },
-    async showReplies (t) {
-      if (t.showReplies) {
-        t.showReplies = false
-        this.reply.opened = null
-      } else {
-        if (this.reply.opened) this.reply.opened.showReplies = false
-        this.reply.opened = t;
-        t.showReplies = true;
-        this.reply.ancestor = this.reply.parent = t._id;
-        this.reply.parentName = t.user.username
-        let replies = await request(`twit/replies/${ t._id }`)
-        this.replies = replies
+    handleDescendants (t) {
+      for (let i in t.descendants) {
+        let r = t.descendants[i]
+        if (r.parent != t._id) {
+          let p = t.descendants.find(d => d._id == r.parent)
+          let username = p?.user.username || undefined
+          r.parent = { _id: r.parent, username }
+        }
       }
+      console.log(t.descendants.map(r => r.parent))
+    },
+    replyToReply (reply) {
+      this.reply.parent = reply._id
+      this.reply.ancestor = reply?.ancestor || reply._id
+      this.reply.parentName = reply.user.username
+      this.reply.replyToContent = reply.content
     },
     fetchChildComments (allparent) {
       fetch(window.ip + 'comments?post=' + 53 + '&parent=' + allparent.join(','))
@@ -377,6 +392,7 @@ export default {
       if (t.ancestor) fd.append('ancestor', undefined)
       let res = await request('twit', 'POST', fd, { upload: true, progress: this.twit.progress })
       this.$store.commit('notify', { content: '发送成功' })
+      this.twit.progress.per = 0
     },
     toggleAnonymous () {
       if (this.userInfo.username) {
@@ -399,7 +415,7 @@ export default {
     position: relative;
     #support {
       margin: 0;
-      padding: 1rem 2rem;
+      padding: .5rem 1rem;
       min-height: 1.25rem;
       visibility: hidden;
       border-top: 1px solid transparent;
@@ -416,7 +432,8 @@ export default {
       top: 0;
       right: 0;
       border-bottom: none;
-      height: calc(100% - 2rem - 1px);
+      min-height: 1.25rem;
+      height: calc(100% - 1rem - 1px);
       overflow: hidden;
     }
   }
@@ -426,7 +443,8 @@ export default {
 }
 .images {
   display: grid;
-  margin-bottom: .5rem;
+  margin: 0 auto .5rem auto;
+  width: calc(100% - 1rem);
   grid-template-columns: repeat(auto-fill, 32%);
   grid-row-gap: .5rem;
   justify-content: space-between;
@@ -437,10 +455,11 @@ export default {
     width: 100%;
     height: 0;
     overflow: hidden;
-    border-radius: .5rem;
+    border-radius: .75rem;
     img {
       display: block;
       width: 100%;
+      border-radius: .75rem;
     }
     &:hover #image-control {
       opacity: 1;
@@ -457,6 +476,7 @@ export default {
         position: absolute;
         width: 100%;
         height: 100%;
+        border-radius: .5rem;
         background-color: white;
         opacity: .7;
         backdrop-filter: blur(30px);
@@ -477,33 +497,50 @@ export default {
     }
   }
 }
-.item {
-  .meta {
-    .name, .date {
-      display: inline-block;
-      margin: 0 1rem 0 0;
-      font-size: .9375rem;
+.item{
+  padding: .5rem 1rem;
+  width: calc(100% - 2rem);
+  .main {
+    .meta {
+      padding: 0 .5rem;
+      .name, .date {
+        display: inline-block;
+        margin: 0 1rem 0 0;
+        font-size: .9375rem;
+      }
+      .name {
+        font-weight: bold;
+      }
+      .date {
+        color: #999;
+        font-size: .8125rem;
+      }
     }
-    .name {
-      font-weight: bold;
+    .content {
+      position: relative;
+      padding: .25rem .5rem;
+      font-size: 0.875rem;
+      line-height: 1.25rem;
+      word-break: break-all;
+      border-radius: .3125rem;
+      transition: background-color .2s ease;
+      cursor: pointer;
+      &:hover {
+        background-color: #f6f6f6;
+      }
     }
-    .date {
-      color: #999;
-      font-size: .8125rem;
+    .image-display {
+      margin: 0 auto .5rem auto;
+      width: calc(100% - 1rem);
+      background-color: #eee;
+      img {
+        display: block;
+        margin: 0 auto;
+        max-width: 100%;
+      }
     }
-  }
-  .content {
-    position: relative;
-    margin-top: .5rem;
-    font-size: 0.875rem;
-    line-height: 1.25rem;
-    word-break: break-all;
-  }
-  .images {
-    margin-top: .5rem;
   }
   .op {
-    margin-top: .5rem;
     .show-replies {
       width: 1.25rem;
       height: 1.25rem;
@@ -586,34 +623,41 @@ export default {
     }
   }
   .replies {
-    margin-top: .5rem;
     .reply {
       position: relative;
-      margin-bottom: .25rem;
+      margin-top: .25rem;
       textarea {
-        width: calc(100% - 5rem);
-        padding: .5rem 1rem;
-        padding-right: 4rem;
+        width: calc(100% - 3.5rem);
+        padding: .25rem .5rem;
+        padding-right: 3rem;
         background-color: #eee;
         border-radius: 1rem;
+        font-size: .375rem;
       }
       .send-reply {
         position: absolute;
-        top: .25rem;
-        right: .25rem;
+        top: .1875rem;
+        right: .1875rem;
       }
     }
     .wrapper {
       .reply-entry {
-        padding: .125rem .5rem;
-        border-radius: .25rem;
+        padding: .0625rem .5rem;
+        border-radius: .3125rem;
         cursor: pointer;
         &:hover {
-          background-color: #eee;
+          background-color: #f6f6f6;
           transition: .2s ease;
         }
-        .name { display: inline; }
-        .content { display: inline; }
+        .name {
+          display: inline;
+          font-size: .8125rem;
+        }
+        .content {
+          display: inline;
+          margin-left: .25rem;
+          font-size: .8125rem;
+        }
       }
     }
   }

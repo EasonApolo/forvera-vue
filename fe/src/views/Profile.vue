@@ -1,12 +1,12 @@
 <template>
-  <div class='profile' @keyup.enter="login()">
+  <div class='profile'>
     <layout>
       <template #main>
         <list>
           <template #list>
             <template  v-if="!loginStatus">
               <input class='item' v-model="username" placeholder="username">
-              <input class='item' v-model='password' placeholder="password" type='password'>
+              <input class='item' v-model='password' placeholder="password" type='password' @keyup.enter="login()">
               <div class='item actions'>
                 <btn @click='register()'>注册</btn>
                 <btn @click='login()'>登录</btn>
@@ -90,21 +90,32 @@ export default {
         this.getPosts()
       }
     },
-    async register () {
-      let payload = { username: this.username, password: this.password }
-      const res = await request('auth/register', 'POST', JSON.stringify(payload))
-      if (res.errno == 'registered') {
-        console.log('registered')
-      } else {
-        this.loginSuccessHandler(res)
+    invalidForm () {
+      if (this.username.length == 0 || this.password.length == 0) {
+        this.$store.commit('notify', { content: '用户名或密码不能为空' });
+        return true
       }
     },
+    handle409 () {
+      this.$store.commit('notify', { content: `E409: 用户名已存在`, type: 'warning' });
+    },
+    handle401 () {
+      this.$store.commit('notify', { content: `E401: 用户名/密码错误`, type: 'warning' });
+    },
+    async register () {
+      if (this.invalidForm()) return
+      let payload = { username: this.username, password: this.password }
+      const res = await request('auth/register', 'POST', JSON.stringify(payload))
+      if (res.ERRNO == 409) { this.handle409() }
+      else { this.loginSuccessHandler(res) }
+    },
     async login () {
+      if (this.invalidForm()) return
       let payload = { username: this.username, password: this.password }
       this.$store.commit('notify', { content: '登录中' })
       let res = await request('auth/login', 'POST', JSON.stringify(payload))
-      this.loginSuccessHandler(res)
-      // this.$store.commit('notify', { content: `ERR: response HttpCode ${ res.status }`, type: 'warning' })
+      if (res.ERRNO == 401) { this.handle401() }
+      else { this.loginSuccessHandler(res) }
     },
     logout () {
       this.$store.commit('setToken', undefined)

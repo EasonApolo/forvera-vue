@@ -50,6 +50,7 @@ export async function request(url, method, params, progressOptions) {
         const res = await axios(options)
         return res.data
     } catch (err) {
-        return { ERRNO: err.response.status }
+        const errCode = err.response.status
+        return { ERRNO: errCode }
     }
 }

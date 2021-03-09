@@ -55,6 +55,7 @@ export default {
   }
 }
 .item {
+  position: relative;
   display: block;
   width: calc(100% - 4rem);
   left: 0;

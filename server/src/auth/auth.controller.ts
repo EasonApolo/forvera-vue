@@ -1,4 +1,4 @@
-import { Controller, Post, UseGuards, Request, Res, HttpCode } from '@nestjs/common';
+import { Controller, Post, UseGuards, Request, Res, HttpCode, ConflictException } from '@nestjs/common';
 import { Public } from 'src/shared/public.decorator';
 import { AuthService } from './auth.service';
 import { LocalAuthGuard } from './local-auth.guard';
@@ -18,7 +18,9 @@ export class AuthController {
   @Public()
   @Post('register')
   async register(@Request() req) {
-    return this.authService.register(req.body)
+    const newUser = await this.authService.register(req.body)
+    if (!newUser) throw new ConflictException()
+    else return
   }
 
   @Post('status')

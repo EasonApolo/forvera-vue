@@ -1,6 +1,6 @@
 module.exports = {
     assetsDir: 'static',
     devServer: {
-        host: 'localhost'
+        host: '192.168.31.32'
     }
 }

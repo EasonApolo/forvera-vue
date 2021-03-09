@@ -47,6 +47,7 @@ export class TwitService {
     const twits = this.twitModel.find({ ancestor: { $exists: false } })
       .populate('user', 'username')
       .populate('files', 'url thumb')
+      .populate({ path: 'descendants', populate: { path: 'user', select: 'username' } })
       .skip(this.PER_PAGE * page).limit(this.PER_PAGE).exec();
     return twits;
   }
