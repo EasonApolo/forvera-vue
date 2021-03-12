@@ -2,16 +2,19 @@ import { Inject, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { FileService } from 'src/file/file.service';
+import { UserService } from 'src/user/user.service';
 import { AddTwitDTO } from './add.dto';
 import { Twit } from './twit.interface';
 
 @Injectable()
 export class TwitService {
   @Inject() private readonly fileService: FileService;
+  @Inject() private readonly userService: UserService
   private readonly PER_PAGE: number = 5;
-  constructor(@InjectModel('Twit') private readonly twitModel: Model<Twit>) { }
+  constructor(@InjectModel('Twit') private readonly twitModel: Model<Twit>) {}
 
   async addTwit(userId: string, addTwitDTO: AddTwitDTO, uploadedFiles): Promise<Twit> {
+    if (!userId) userId = this.userService.anonymous._id
     let reactions: Array<number> = new Array(12).fill(0);
     let created_time: Date = new Date();
     let files = new Array();
@@ -35,11 +38,13 @@ export class TwitService {
         { $push: { "children": twit._id } }, { new : true },
       )
     }
-    let savedFiles = await this.fileService.saveFiles(userId, twit._id.toString(), uploadedFiles)
-    let fileIds: string[] = savedFiles.map(f => f._id.toString())
-    twit = await this.twitModel.findByIdAndUpdate(
-      twit._id, { files: fileIds }, { new: true }
-    )
+    if (uploadedFiles) {
+      let savedFiles = await this.fileService.saveFiles(userId, twit._id.toString(), uploadedFiles)
+      let fileIds: string[] = savedFiles.map(f => f._id.toString())
+      twit = await this.twitModel.findByIdAndUpdate(
+        twit._id, { files: fileIds }, { new: true }
+      )
+    }
     return twit;
   }
 

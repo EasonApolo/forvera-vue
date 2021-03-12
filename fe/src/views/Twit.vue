@@ -24,10 +24,10 @@
                   </div>
                 </div>
               </div>
-              <div class='item'>
+              <div class='item controls'>
                 <pro :progress='twit.progress.per'></pro>
                 <btn @click='send()'>发送</btn>
-                <btn @click='toggleAnonymous()'>{{ sendTwitUserName }}</btn>
+                <sel :options='anonymousOptions' @select='changeUser'></sel>
                 <label>
                   <input id='input-file' ref='inputFile' type="file" accept="image/*" @change="selectImage" multiple>
                   <btn @click='selectImageTrigger'>图片</btn>
@@ -108,6 +108,7 @@ import { mapGetters } from 'vuex'
 import { readFile } from '@/shared/helper'
 import { request } from '../shared/Request'
 import { ip } from '@/shared/config'
+import Select from '@/components/Select.vue'
 
 export default {
   name: 'twit',
@@ -166,6 +167,7 @@ export default {
     'list': List,
     'btn': Button,
     'pro': Progress,
+    'sel': Select,
   },
   created () {
     this.fetchTwits(this.curPage)
@@ -180,6 +182,13 @@ export default {
     this.listNode = document.getElementsByClassName('list')[0]
   },
   computed: {
+    anonymousOptions () {
+      const displayUserName = this.$store.state.login ? this.userInfo.username : '未登录'
+      return [
+        { name: 'anonymous', value: '匿名', default: true },
+        { name: 'username', value: displayUserName, disabled: !this.$store.state.login },
+      ]
+    },
     replyParentName () { 
       return function (r) { return r.parent?.username }
     },
@@ -379,23 +388,27 @@ export default {
       let res = await request('twit', 'POST', fd)
       this.$store.commit('notify', { content: '发送成功' })
     },
+    changeUser (name) {
+      this.twit.anonymous = name == 'anonymous'
+    },
     async send () {
       let t = this.twit
-      if (t.content == '') {
-        this.$store.commit('notify', { content: '内容不能为空' }); return;
-      }
+      if (t.content == '') { this.$store.commit('notify', { content: '内容不能为空' }); return; }
       this.$store.commit('notify', { content: '发送中' })
       let fd = new FormData()
       fd.append('content', t.content)
-      t.files.map(f => fd.append('files', f.blob))
       if (t.parent) fd.append('parent', null)
       if (t.ancestor) fd.append('ancestor', undefined)
-      let res = await request('twit', 'POST', fd, { upload: true, progress: this.twit.progress })
+      if (!t.anonymous) {
+        t.files.map(f => fd.append('files', f.blob))
+      }
+      const api = t.anonymous ? 'twit/anonymous' : 'twit'
+      let res = await request(api, 'POST', fd, { upload: true, progress: this.twit.progress })
       this.$store.commit('notify', { content: '发送成功' })
       this.twit.progress.per = 0
     },
     toggleAnonymous () {
-      if (this.userInfo.username) {
+      if (this.$store.state.login) {
         this.twit.anonymous = !this.twit.anonymous
       } else {
         this.$store.commit('notify', { content: '登录后可以使用用户名发言' })
@@ -439,6 +452,12 @@ export default {
   }
   #input-file {
     display: none;
+  }
+  .controls {
+    display: flex;
+    & > div {
+      margin-right: 1rem;
+    }
   }
 }
 .images {

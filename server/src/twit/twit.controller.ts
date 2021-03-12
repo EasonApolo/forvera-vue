@@ -15,6 +15,13 @@ export class TwitController {
     return await this.twitService.addTwit(userId, addTwitDTO, files)
   }
 
+  @Post('/anonymous')
+  @UseInterceptors(FilesInterceptor('files'))
+  async addTwitAnonymous(@Req() req, @Body() addTwitDTO: AddTwitDTO, @UploadedFiles() files) {
+    console.log(addTwitDTO)
+    return await this.twitService.addTwit(null, addTwitDTO, null)
+  }
+
   @Public()
   @Get('/:page')
   async getTwit(@Param('page') page) {

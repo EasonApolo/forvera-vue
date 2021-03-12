@@ -1,12 +1,17 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CreateUserDTO } from './create-user.dto';
 import { User } from './user.interface';
 
 @Injectable()
-export class UserService {
-  constructor(@InjectModel('User') private readonly userModel: Model<User>) { }
+export class UserService implements OnModuleInit {
+  anonymous: User
+  constructor(@InjectModel('User') private readonly userModel: Model<User>) {}
+
+  async onModuleInit () {
+    this.anonymous = await this.addUser({ username: 'anonymous', password: 'anonymous' }, true)
+  }
 
   async getUserInfo(user): Promise<User> {
     const userInfo = await this.userModel
@@ -21,9 +26,9 @@ export class UserService {
     return user;
   }
 
-  async addUser(createUserDTO: CreateUserDTO): Promise<User> {
+  async addUser(createUserDTO: CreateUserDTO, addIfNotExist?: boolean): Promise<User> {
     let res = await this.getUserByName(createUserDTO.username)
-    if (res) return null
+    if (res) { return addIfNotExist ? res : null }
     const newUser = await new this.userModel(createUserDTO);
     return newUser.save();
   }
