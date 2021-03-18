@@ -330,7 +330,11 @@ export default {
     },
     async fetchTwits (page) {
       let twits = await request(`twit/${ page }`, null, null, { upload: true, progress: this.twit.progress })
-      twits.map(t => {
+      this.handleTwits(twits)
+      this.data.push(...twits)
+    },
+    handleTwits (twits) {
+      const handler = t => {
         const date = new Date(t.created_time)
         t.content = t.content.replace(/\n/g, '<br>')
         t.created_time = `${ date.toLocaleDateString() } ${ date.toLocaleTimeString(undefined, {hour12: false}) }`
@@ -339,8 +343,10 @@ export default {
           f.thumb = `${ ip }${ f.thumb }`;
         })
         this.handleDescendants(t)
-      })
-      this.data.push(...twits)
+        return t
+      }
+      if (Array.isArray(twits)) return twits.map(handler)
+      else return handler(twits)
     },
     handleDescendants (t) {
       for (let i in t.descendants) {
@@ -381,11 +387,16 @@ export default {
       if (r.content.length < 1 || !r.ancestor || !r.parent) {
         this.$store.commit('notify', { content: '内容不能为空' }); return;
       }
+      this.$store.commit('notify', { content: '发送中' })
       let fd = new FormData()
       fd.append('content', this.reply.content)
       fd.append('parent', this.reply.parent)
       fd.append('ancestor', this.reply.ancestor)
-      let res = await request('twit', 'POST', fd)
+      const api = this.twit.anonymous ? 'twit/anonymous' : 'twit'
+      let newAncestorTwit = await request(api, 'POST', fd)
+      let ancestorIndex = this.data.findIndex(t => t._id == newAncestorTwit._id)
+      console.log(ancestorIndex)
+      this.data.splice(ancestorIndex, 1, this.handleTwits(newAncestorTwit))
       this.$store.commit('notify', { content: '发送成功' })
     },
     changeUser (name) {
@@ -397,13 +408,12 @@ export default {
       this.$store.commit('notify', { content: '发送中' })
       let fd = new FormData()
       fd.append('content', t.content)
-      if (t.parent) fd.append('parent', null)
-      if (t.ancestor) fd.append('ancestor', undefined)
       if (!t.anonymous) {
         t.files.map(f => fd.append('files', f.blob))
       }
       const api = t.anonymous ? 'twit/anonymous' : 'twit'
-      let res = await request(api, 'POST', fd, { upload: true, progress: this.twit.progress })
+      let newTwit = await request(api, 'POST', fd, { upload: true, progress: this.twit.progress })
+      this.data.unshift(this.handleTwits(newTwit))
       this.$store.commit('notify', { content: '发送成功' })
       this.twit.progress.per = 0
     },

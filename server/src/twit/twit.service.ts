@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Query } from 'mongoose';
 import { FileService } from 'src/file/file.service';
 import { UserService } from 'src/user/user.service';
 import { AddTwitDTO } from './add.dto';
@@ -45,18 +45,31 @@ export class TwitService {
         twit._id, { files: fileIds }, { new: true }
       )
     }
-    return twit;
+    if (twit.ancestor) {
+      return await this.getTwitById(twit.ancestor)
+    } else {
+      return await this.getTwitById(twit._id)
+    }
   }
 
-  async getTwit(page: number): Promise<Twit[]> {
-    const twits = this.twitModel.find({ ancestor: { $exists: false } })
+  getTwitById(id: string): Promise<Twit> {
+    const query = this.twitModel.findById(id)
+    return this.populateTwit(query).exec()
+  }
+
+  getTwitByPage(page: number): Promise<Twit[]> {
+    const query = this.twitModel.find({ ancestor: { $exists: false } }).sort({ created_time: -1 })
+      .skip(this.PER_PAGE * page).limit(this.PER_PAGE)
+    return this.populateTwit(query).exec()
+  }
+
+  populateTwit(query) {
+    return query
       .populate('user', 'username')
       .populate('files', 'url thumb')
       .populate({ path: 'descendants', populate: { path: 'user', select: 'username' } })
-      .skip(this.PER_PAGE * page).limit(this.PER_PAGE).exec();
-    return twits;
   }
-  
+
   async getReplies(twitId: string) {
     const replies = await this.twitModel.findById(twitId)
       .populate({ path: 'descendants', populate: { path: 'user', select: 'username' } })

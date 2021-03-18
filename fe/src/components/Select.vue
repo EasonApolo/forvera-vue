@@ -31,13 +31,14 @@ export default {
 .select {
   display: flex;
   border-radius: 2rem;
-  font-size: .8125rem;
+  font-size: .875rem;
   transition: all .2s ease;
+  line-height: calc(1.5rem - 2px);
   cursor: pointer;
   user-select: none;
   color: #888;
   .option {
-    padding: 0.16875rem .375rem;
+    padding: 0 .375rem;
     transition: background-color .2s ease;
     border: 1px solid #ccc;
     border-right: none;
